@@ -7,8 +7,8 @@ typedef struct h_post
 {
 	char* _fstr;
 	char* title;
-	char* html;
 	char* slug;
+	char* html;
 } h_post;
 
 //Initiate a post

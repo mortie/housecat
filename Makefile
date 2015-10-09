@@ -1,8 +1,8 @@
 build:
-	gcc -O3 -o housecat src/*.c
+	gcc -O3 -Wall -Wextra -o housecat src/*.c -std=c99 -D_GNU_SOURCE=700
 
 debug:
-	gcc -DDBUG -o housecat src/*.c
+	gcc -Wall -Wextra -o housecat src/*.c -std=c99 -DDEBUG=1 -D_GNU_SOURCE=700
 
 clean:
 	rm housecat

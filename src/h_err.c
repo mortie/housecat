@@ -2,15 +2,34 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 
 static char* str_from_err(h_err* err)
 {
-	return "Unknown error";
+	switch (err->type)
+	{
+	case H_ERR_UNKNOWN:
+		return "Unknown error";
+	case H_ERR_OTHER:
+		return "";
+	case H_ERR_ALLOC:
+		return "Allocation error";
+	case H_ERR_ACCESS:
+		return "Permission denied";
+	default:
+		return "Unknown error";
+	}
 }
 
 static h_err_type type_from_errno(int err)
 {
-	return H_ERR_UNKNOWN;
+	switch (err)
+	{
+	case EACCES:
+		return H_ERR_ACCESS;
+	default:
+		return H_ERR_UNKNOWN;
+	}
 }
 
 h_err* _h_err_create(h_err_type type, char* msg, int line, char* file)
@@ -31,7 +50,7 @@ h_err* _h_err_create(h_err_type type, char* msg, int line, char* file)
 
 h_err* _h_err_from_errno(int err, char* msg, int line, char* file)
 {
-	puts("nononono");
+	printf("creating from errno, %i\n", err);
 	return _h_err_create(type_from_errno(err), msg, line, file);
 }
 

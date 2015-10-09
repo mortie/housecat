@@ -5,7 +5,8 @@ typedef enum h_err_type
 {
 	H_ERR_UNKNOWN,
 	H_ERR_OTHER,
-	H_ERR_ALLOC
+	H_ERR_ALLOC,
+	H_ERR_ACCESS
 } h_err_type;
 
 typedef struct h_err

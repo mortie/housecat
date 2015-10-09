@@ -45,7 +45,8 @@ h_err* h_post_init_from_file(h_post* post, char* path)
 	enum parsemode mode = PARSE_BEFORE;
 
 	//Scan through the file
-	char c, prev;
+	char c;
+	char prev = 0;
 	int i = 0;
 	while ((c = getc(f)) != EOF)
 	{
@@ -100,12 +101,14 @@ h_err* h_post_init_from_file(h_post* post, char* path)
 	if (lastslash > lastdot)
 		lastdot = length;
 
-	int chars = lastdot - lastslash - 6 - 1;
+	int chars = lastdot - lastslash - 6;
 	post->slug = malloc(chars * sizeof(char));
 	if (post->slug == NULL)
 		return h_err_create(H_ERR_ALLOC, NULL);
 
 	memcpy(post->slug, path + lastslash + 1 + 6, chars * sizeof(char));
+
+	post->slug[chars - 1] = '\0';
 
 	return NULL;
 }
