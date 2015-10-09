@@ -8,6 +8,9 @@
 
 static char* path_join(char* p1, char* p2)
 {
+	if (p1 == NULL || p2 == NULL)
+		return NULL;
+
 	int len1 = strlen(p1);
 	int len2 = strlen(p2);
 	int len = len1 + len2 + 2;
@@ -18,7 +21,6 @@ static char* path_join(char* p1, char* p2)
 	memcpy(path + len1 + 1, p2, len2);
 
 	path[len - 1] = '\0';
-
 	return path;
 }
 
