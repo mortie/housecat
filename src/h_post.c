@@ -84,6 +84,7 @@ h_err* h_post_init_from_file(h_post* post, char* path)
 		fstr[i++] = c;
 	}
 
+	fstr[i - 1] = '\0';
 	post->_fstr = fstr;
 
 	//Get post's slug from the path

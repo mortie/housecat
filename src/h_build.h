@@ -4,6 +4,13 @@
 #include "h_err.h"
 #include "h_section.h"
 
-h_err* h_build(h_section* root, char* dirpath);
+struct h_build_strs
+{
+	char* index;
+	char* section;
+	char* post;
+};
+
+h_err* h_build(h_section* root, char* dirpath, struct h_build_strs str);
 
 #endif

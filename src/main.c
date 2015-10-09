@@ -28,7 +28,14 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	err = h_build(root, argv[2]);
+	struct h_build_strs strs =
+	{
+		/* index */ "<!DOCTYPE html><html><body>{{page}}</body></html>",
+		/* section */ "<div class='posts'>{{posts}}</div>",
+		/* post */ "<div class='post'><h1>{{title}}</h1><div class='content'>{{html}}</div></div>"
+	};
+
+	err = h_build(root, argv[2], strs);
 	if (err)
 	{
 		h_err_print(err);
