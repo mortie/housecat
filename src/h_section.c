@@ -1,28 +1,11 @@
 #include "h_section.h"
+#include "h_util.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 #include <dirent.h>
 #include <string.h>
-
-static char* path_join(char* p1, char* p2)
-{
-	if (p1 == NULL || p2 == NULL)
-		return NULL;
-
-	int len1 = strlen(p1);
-	int len2 = strlen(p2);
-	int len = len1 + len2 + 2;
-	char* path = malloc(len);
-
-	memcpy(path, p1, len1);
-	memcpy(path + len1, "/", 1);
-	memcpy(path + len1 + 1, p2, len2);
-
-	path[len - 1] = '\0';
-	return path;
-}
 
 void h_section_init(h_section* section, char* title, char* slug)
 {
@@ -64,7 +47,7 @@ h_err* h_section_init_from_dir(h_section* section, char* path)
 			if (post == NULL)
 				return h_err_create(H_ERR_ALLOC, NULL);
 
-			char* p = path_join(path, ent->d_name);
+			char* p = h_util_path_join(path, ent->d_name);
 			if (p == NULL)
 				return h_err_create(H_ERR_ALLOC, NULL);
 
@@ -86,7 +69,7 @@ h_err* h_section_init_from_dir(h_section* section, char* path)
 			if (sub == NULL)
 				return h_err_create(H_ERR_ALLOC, NULL);
 
-			char* p = path_join(path, ent->d_name);
+			char* p = h_util_path_join(path, ent->d_name);
 			if (p == NULL)
 				return h_err_create(H_ERR_ALLOC, NULL);
 
@@ -118,6 +101,13 @@ h_err* h_section_init_from_dir(h_section* section, char* path)
 	}
 
 	int chars = length - lastslash - 6;
+
+	if (chars <= 0) {
+		section->slug = NULL;
+		section->title = NULL;
+		return NULL;
+	}
+
 	section->slug = malloc(chars * sizeof(char));
 	if (section->slug == NULL)
 		return h_err_create(H_ERR_ALLOC, NULL);

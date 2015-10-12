@@ -1,6 +1,7 @@
 #include "h_build.h"
 #include "h_file.h"
 #include "h_template.h"
+#include "h_util.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -8,42 +9,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-
-static char* path_join(char* p1, char* p2)
-{
-	if (p1 == NULL || p2 == NULL)
-		return NULL;
-
-	int len1 = strlen(p1);
-	int len2 = strlen(p2);
-	int len = len1 + len2 + 2;
-	char* path = malloc(len);
-
-	memcpy(path, p1, len1);
-	memcpy(path + len1, "/", 1);
-	memcpy(path + len1 + 1, p2, len2);
-
-	path[len - 1] = '\0';
-	return path;
-}
-
-static char* str_join(char* s1, char* s2)
-{
-	int len1, len2;
-	if (s1 == NULL) len1 = 0;
-	else len1 = strlen(s1);
-	if (s2 == NULL) len2 = 0;
-	else len2 = strlen(s2);
-
-	int len = len1 + len2 + 1;
-	char* str = malloc(len);
-
-	memcpy(str, s1, len1);
-	memcpy(str + len1, s2, len2);
-
-	str[len - 1] = '\0';
-	return str;
-}
 
 char* h_build_post(h_post* post, struct h_build_strs strs)
 {
@@ -76,7 +41,7 @@ char* h_build_section(h_section* section, struct h_build_strs strs)
 		h_post* post = section->posts[i];
 		char* str = h_build_post(post, strs);
 
-		char* s = str_join(posts_str, str);
+		char* s = h_util_str_join(posts_str, str);
 		if (s == NULL)
 			return NULL;
 
@@ -102,14 +67,14 @@ h_err* h_build(h_section* section, char* dirpath, struct h_build_strs strs)
 	char* str;
 
 	//Create section's directory
-	char* path = path_join(dirpath, section->slug);
+	char* path = h_util_path_join(dirpath, section->slug);
 	if (path == NULL)
 		return h_err_create(H_ERR_ALLOC, NULL);
 	if (mkdir(path, 0777) == -1 && errno != EEXIST)
 		return h_err_from_errno(errno, path);
 
 	//Create path for index.html file
-	char* fpath = path_join(path, H_FILE_INDEX);
+	char* fpath = h_util_path_join(path, H_FILE_INDEX);
 	if (fpath == NULL)
 		return h_err_create(H_ERR_ALLOC, NULL);
 
@@ -134,14 +99,14 @@ h_err* h_build(h_section* section, char* dirpath, struct h_build_strs strs)
 		h_post* post = section->posts[i];
 
 		//Create post's directory
-		char* dpath = path_join(path, post->slug);
+		char* dpath = h_util_path_join(path, post->slug);
 		if (dpath == NULL)
 			return h_err_create(H_ERR_ALLOC, NULL);
 		if (mkdir(dpath, 0777) == -1 && errno != EEXIST)
 			return h_err_from_errno(errno, dpath);
 
 		//Create path for index.html file
-		char* fpath = path_join(dpath, H_FILE_INDEX);
+		char* fpath = h_util_path_join(dpath, H_FILE_INDEX);
 		if (fpath == NULL)
 			return h_err_create(H_ERR_ALLOC, NULL);
 
