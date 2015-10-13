@@ -4,5 +4,8 @@ build:
 debug:
 	gcc -Wall -Wextra -o housecat src/*.c -std=c99 -DDEBUG=1 -D_GNU_SOURCE=1
 
+install:
+	mv housecat /usr/bin/housecat
+
 clean:
 	rm housecat

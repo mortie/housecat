@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 char* h_util_path_join(char* p1, char* p2)
 {
@@ -45,5 +46,30 @@ char* h_util_str_join(char* s1, char* s2)
 	memcpy(str + len1, s2, len2);
 
 	str[len - 1] = '\0';
+	return str;
+}
+
+char* h_util_file_read(char* path)
+{
+	FILE* f = fopen(path, "r");
+
+	if (f == NULL)
+		return NULL;
+
+	fseek(f, 0L, SEEK_END);
+	long len = ftell(f);
+	fseek(f, 0L, SEEK_SET);
+
+	char* str = malloc(len);
+
+	char c;
+	int i = 0;
+	while((c = getc(f)) != EOF)
+	{
+		str[i++] = c;
+	}
+
+	fclose(f);
+
 	return str;
 }

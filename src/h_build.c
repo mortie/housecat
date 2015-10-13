@@ -32,32 +32,43 @@ char* h_build_post(h_post* post, struct h_build_strs strs)
 char* h_build_section(h_section* section, struct h_build_strs strs)
 {
 	h_err* err;
-	char* posts_str = NULL;
+	char* str = NULL;
+	char* tmp_str = NULL;
+	h_template_args* args = NULL;
 
 	//Assemble posts
 	int i;
 	for (i = 0; i < section->numposts; ++i)
 	{
 		h_post* post = section->posts[i];
-		char* str = h_build_post(post, strs);
-
-		char* s = h_util_str_join(posts_str, str);
-		if (s == NULL)
+		tmp_str = h_build_post(post, strs);
+		if (tmp_str == NULL)
 			return NULL;
 
-		free(posts_str);
-		posts_str = s;
+		tmp_str = h_util_str_join(tmp_str, str);
+		if (tmp_str == NULL)
+			return NULL;
+
+		str = tmp_str;
 	}
 
-	//Create arguments for the template
-	h_template_args* args = h_template_args_create();
-	err = h_template_args_append(args, "posts", posts_str);
+	//Posts template
+	args = h_template_args_create();
+	err = h_template_args_append(args, "posts", str);
 	if (err) return NULL;
+	str = h_templateify(strs.section, args);
 
-	char* str = h_templateify(strs.section, args);
+	//Index template
+	free(args);
+	args = h_template_args_create();
+	h_template_args_append(args, "title", section->title);
+	h_template_args_append(args, "sections", str);
+	if (err) return NULL;
+	str = h_templateify(strs.index, args);
+
 
 	free(args);
-	free(posts_str);
+	free(tmp_str);
 
 	return str;
 }
