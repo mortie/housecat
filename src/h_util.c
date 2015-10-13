@@ -61,13 +61,10 @@ char* h_util_file_read(char* path)
 	fseek(f, 0L, SEEK_SET);
 
 	char* str = malloc(len);
+	if (str == NULL)
+		return NULL;
 
-	char c;
-	int i = 0;
-	while((c = getc(f)) != EOF)
-	{
-		str[i++] = c;
-	}
+	fread(str, sizeof(char), len, f);
 
 	fclose(f);
 
