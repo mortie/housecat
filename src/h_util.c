@@ -73,3 +73,14 @@ char* h_util_file_read(char* path)
 
 	return str;
 }
+
+int h_util_file_err(char* path)
+{
+	FILE* f = fopen(path, "r");
+
+	if (f == NULL)
+		return errno;
+
+	fclose(f);
+	return 0;
+}

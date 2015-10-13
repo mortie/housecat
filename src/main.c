@@ -15,6 +15,9 @@ h_err* build(char* path)
 {
 	h_err* err;
 
+	if (h_util_file_err(path))
+		return h_err_from_errno(errno, path);
+
 	char* inpath = h_util_path_join(path, H_FILE_INPUT);
 	char* outpath = h_util_path_join(path, H_FILE_OUTPUT);
 	if (inpath == NULL || outpath == NULL)
@@ -28,17 +31,20 @@ h_err* build(char* path)
 	if (mkdir(inpath, 0777) == -1 && errno != EEXIST)
 		return h_err_create(errno, inpath);
 
-	char* index_path = h_util_path_join(path, H_FILE_THEME "/index.html");
+	//Index template
+	char* index_path = h_util_path_join(path, H_FILE_THEME_HTML "/index.html");
 	char* index_str = h_util_file_read(index_path);
 	if (index_str == NULL) return h_err_from_errno(errno, index_path);
 	free(index_path);
 
-	char* section_path = h_util_path_join(path, H_FILE_THEME "/section.html");
+	//Section template
+	char* section_path = h_util_path_join(path, H_FILE_THEME_HTML "/section.html");
 	char* section_str = h_util_file_read(section_path);
 	if (section_str == NULL) return h_err_from_errno(errno, section_path);
 	free(section_path);
 
-	char* post_path = h_util_path_join(path, H_FILE_THEME "/post.html");
+	//Post template
+	char* post_path = h_util_path_join(path, H_FILE_THEME_HTML "/post.html");
 	char* post_str = h_util_file_read(post_path);
 	if (post_str == NULL) return h_err_from_errno(errno, post_path);
 	free(post_path);
