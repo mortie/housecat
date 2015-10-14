@@ -10,7 +10,27 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-char* h_build_post(h_post* post, struct h_build_strs strs)
+static char* build_menu_node(h_section* section, struct h_build_strs strs)
+{
+	return NULL;
+}
+
+static char* build_menu(h_section* root, h_section* section, struct h_build_strs strs)
+{
+	h_err* err;
+
+	//Create arguments for the template
+	h_template_args* args = h_template_args_create();
+
+	//Execute the template
+	char* str = h_templateify(strs.menu, args);
+
+	free(args);
+	
+	return str;
+}
+
+static char* build_post(h_post* post, struct h_build_strs strs)
 {
 	h_err* err;
 
@@ -29,7 +49,7 @@ char* h_build_post(h_post* post, struct h_build_strs strs)
 	return str;
 }
 
-char* h_build_section(h_section* section, struct h_build_strs strs)
+static char* build_section(h_section* root, h_section* section, struct h_build_strs strs)
 {
 	h_err* err;
 	char* str = NULL;
@@ -41,7 +61,7 @@ char* h_build_section(h_section* section, struct h_build_strs strs)
 	for (i = 0; i < section->numposts; ++i)
 	{
 		h_post* post = section->posts[i];
-		tmp_str = h_build_post(post, strs);
+		tmp_str = build_post(post, strs);
 		if (tmp_str == NULL)
 			return NULL;
 
@@ -61,8 +81,11 @@ char* h_build_section(h_section* section, struct h_build_strs strs)
 	//Index template
 	free(args);
 	args = h_template_args_create();
-	h_template_args_append(args, "title", section->title);
-	h_template_args_append(args, "sections", str);
+	err = h_template_args_append(args, "title", section->title);
+	if (err) return NULL;
+	err = h_template_args_append(args, "sections", str);
+	if (err) return NULL;
+	err = h_template_args_append(args, "menu", build_menu(root, section, strs));
 	if (err) return NULL;
 	str = h_templateify(strs.index, args);
 
@@ -73,7 +96,7 @@ char* h_build_section(h_section* section, struct h_build_strs strs)
 	return str;
 }
 
-h_err* h_build(h_section* section, char* dirpath, struct h_build_strs strs)
+static h_err* build_node(h_section* root, h_section* section, char* dirpath, struct h_build_strs strs)
 {
 	char* str;
 
@@ -91,7 +114,7 @@ h_err* h_build(h_section* section, char* dirpath, struct h_build_strs strs)
 
 	//Build section's index.html file
 
-	str = h_build_section(section, strs);
+	str = build_section(root, section, strs);
 	if (str == NULL)
 		return h_err_create(H_ERR_ALLOC, NULL);
 
@@ -123,7 +146,7 @@ h_err* h_build(h_section* section, char* dirpath, struct h_build_strs strs)
 
 		//Build path's index.html file
 
-		str = h_build_post(post, strs);
+		str = build_post(post, strs);
 		if (str == NULL)
 			return h_err_create(H_ERR_ALLOC, NULL);
 
@@ -145,11 +168,16 @@ h_err* h_build(h_section* section, char* dirpath, struct h_build_strs strs)
 		h_section* sub = section->subs[i];
 
 		//Build sub
-		h_build(sub, path, strs);
+		build_node(root, sub, path, strs);
 	}
 
 	free(path);
 	free(fpath);
 
 	return NULL;
+}
+
+h_err* h_build(h_section* root, char* dirpath, struct h_build_strs strs)
+{
+	return build_node(root, root, dirpath, strs);
 }

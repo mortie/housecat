@@ -31,29 +31,43 @@ h_err* build(char* path)
 	if (mkdir(inpath, 0777) == -1 && errno != EEXIST)
 		return h_err_create(errno, inpath);
 
-	//Index template
+	//index template
 	char* index_path = h_util_path_join(path, H_FILE_THEME_HTML "/index.html");
 	char* index_str = h_util_file_read(index_path);
 	if (index_str == NULL) return h_err_from_errno(errno, index_path);
 	free(index_path);
 
-	//Section template
+	//section template
 	char* section_path = h_util_path_join(path, H_FILE_THEME_HTML "/section.html");
 	char* section_str = h_util_file_read(section_path);
 	if (section_str == NULL) return h_err_from_errno(errno, section_path);
 	free(section_path);
 
-	//Post template
+	//post template
 	char* post_path = h_util_path_join(path, H_FILE_THEME_HTML "/post.html");
 	char* post_str = h_util_file_read(post_path);
 	if (post_str == NULL) return h_err_from_errno(errno, post_path);
 	free(post_path);
 
+	//menu template
+	char* menu_path = h_util_path_join(path, H_FILE_THEME_HTML "/menu.html");
+	char* menu_str = h_util_file_read(menu_path);
+	if (menu_str == NULL) return h_err_from_errno(errno, menu_path);
+	free(menu_path);
+
+	//menu_section template
+	char* menu_section_path = h_util_path_join(path, H_FILE_THEME_HTML "/menu_section.html");
+	char* menu_section_str = h_util_file_read(menu_section_path);
+	if (menu_section_str == NULL) return h_err_from_errno(errno, menu_section_path);
+	free(menu_section_path);
+
 	struct h_build_strs strs =
 	{
 		index_str,
 		section_str,
-		post_str
+		post_str,
+		menu_str,
+		menu_section_str
 	};
 
 	err = h_build(root, outpath, strs);

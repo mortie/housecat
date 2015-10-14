@@ -57,16 +57,18 @@ char* h_util_file_read(char* path)
 		return NULL;
 
 	fseek(f, 0L, SEEK_END);
-	long len = ftell(f);
+	long len = ftell(f) + 1;
 	fseek(f, 0L, SEEK_SET);
 
 	char* str = malloc(len);
 	if (str == NULL)
 		return NULL;
 
-	fread(str, sizeof(char), len, f);
+	fread(str, sizeof(char), len - 1, f);
 
 	fclose(f);
+
+	str[len - 1] = '\0';
 
 	return str;
 }
