@@ -20,6 +20,9 @@ h_template_args* h_template_args_create()
 
 h_err* h_template_args_append(h_template_args* args, char* key, char* val)
 {
+	if (val == NULL)
+		return h_err_create(H_ERR_UNKNOWN, key);
+
 	args->argnum += 1;
 
 	if (args->argnum > args->allocd)
@@ -78,6 +81,13 @@ static char* str_insert(
 	memmove(str + start + str2len, str1 + end, str1len - end - 1);
 	if (str2len > 0)
 		memcpy(str + start, str2, str2len);
+
+	puts(str1);
+	puts("-------");
+	puts(str2);
+	puts("-------");
+	puts(str);
+	puts("===============================================");
 
 	return str;
 }

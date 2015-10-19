@@ -7,17 +7,7 @@
 #include <dirent.h>
 #include <string.h>
 
-void h_section_init(h_section* section, char* title, char* slug)
-{
-	section->title = title;
-	section->slug = slug;
-	section->posts = NULL;
-	section->numposts = 0;
-	section->subs = NULL;
-	section->numsubs = 0;
-}
-
-h_err* h_section_init_from_dir(h_section* section, char* path)
+static h_err* init_from_dir(h_section* section, char* path, char* spath, int depth)
 {
 	section->posts = NULL;
 	section->numposts = 0;
@@ -73,8 +63,14 @@ h_err* h_section_init_from_dir(h_section* section, char* path)
 			if (p == NULL)
 				return h_err_create(H_ERR_ALLOC, NULL);
 
+			char* sp = h_util_path_join(spath, ent->d_name + 6);
+			if (sp == NULL)
+				return h_err_create(H_ERR_ALLOC, NULL);
+			if (sp[0] == '/')
+				sp = sp + 1;
+
 			h_err* err = NULL;
-			err = h_section_init_from_dir(sub, p);
+			err = init_from_dir(sub, p, sp, depth + 1);
 			if (err)
 				return err;
 
@@ -108,6 +104,9 @@ h_err* h_section_init_from_dir(h_section* section, char* path)
 		return NULL;
 	}
 
+	section->path = spath;
+	section->depth = depth;
+
 	section->slug = malloc(chars * sizeof(char));
 	if (section->slug == NULL)
 		return h_err_create(H_ERR_ALLOC, NULL);
@@ -131,6 +130,11 @@ h_err* h_section_init_from_dir(h_section* section, char* path)
 	section->title[length - 1] = '\0';
 
 	return NULL;
+}
+
+h_err* h_section_init_from_dir(h_section* section, char* path)
+{
+	return init_from_dir(section, path, "", 0);
 }
 
 h_err* h_section_add_post(h_section* section, h_post* post)

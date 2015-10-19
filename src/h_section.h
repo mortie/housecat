@@ -12,10 +12,9 @@ typedef struct h_section
 	int numposts;
 	struct h_section** subs;
 	int numsubs;
+	char* path;
+	int depth;
 } h_section;
-
-//Initiate a section
-void h_section_init(h_section* section, char* title, char* slug);
 
 //Initiate a section from directory
 h_err* h_section_init_from_dir(h_section* section, char* path);
