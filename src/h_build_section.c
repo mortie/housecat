@@ -1,7 +1,6 @@
 #include "h_build.h"
 #include "h_template.h"
 #include "h_util.h"
-#include "../settings.h"
 
 #include <stdlib.h>
 
@@ -16,7 +15,7 @@ static char* build_section_post(h_post* post, h_build_strs strs)
 	return res;
 }
 
-h_err* h_build_section(h_section* root, h_section* section, FILE* file, h_build_strs strs)
+h_err* h_build_section(h_section* root, h_section* section, FILE* file, h_build_strs strs, h_conf* conf)
 {
 	char* posts_str = NULL;
 	int i;
@@ -33,7 +32,7 @@ h_err* h_build_section(h_section* root, h_section* section, FILE* file, h_build_
 
 	h_template_args* args = h_template_args_create();
 	h_template_args_append(args, "title", section->title);
-	h_template_args_append(args, "s_title", H_SETTINGS_TITLE);
+	h_template_args_append(args, "s_title", conf->title);
 	h_template_args_append(args, "menu", menu_str);
 	h_template_args_append(args, "posts", posts_str);
 	char* res = h_templateify(strs.index, args);

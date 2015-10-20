@@ -18,8 +18,6 @@ h_template_args* h_template_args_create()
 
 h_err* h_template_args_append(h_template_args* args, char* key, char* val)
 {
-	if (val == NULL)
-		return h_err_create(H_ERR_UNKNOWN, key);
 	args->argnum += 1;
 	if (args->argnum > args->allocd)
 	{
@@ -34,6 +32,7 @@ h_err* h_template_args_append(h_template_args* args, char* key, char* val)
 		if (!args->arguments)
 			return h_err_create(H_ERR_ALLOC, NULL);
 	}
+
 	//Wrap key in {{ and }}
 	int len = strlen(key);
 	char* fullkey = malloc(len + 5);
@@ -86,9 +85,9 @@ static char* str_replace(char* orig, char* rep, char* with) {
 
 	// first time through the loop, all the variable are set correctly
 	// from here on,
-	//	tmp points to the end of the result string
-	//	ins points to the next occurrence of rep in orig
-	//	orig points to the remainder of orig after "end of rep"
+	//    tmp points to the end of the result string
+	//    ins points to the next occurrence of rep in orig
+	//    orig points to the remainder of orig after "end of rep"
 	tmp = result = malloc(strlen(orig) + (len_with - len_rep) * count + 1);
 
 	if (!result)
@@ -111,7 +110,16 @@ char* h_templateify(char* str, h_template_args* args)
 	for (i = 0; i < args->argnum; ++i)
 	{
 		h_template_arg arg = args->arguments[i];
-		str = str_replace(str, arg.key, arg.val);
+		char* s;
+		if (arg.val == NULL)
+			s = str_replace(str, arg.key, "");
+		else
+			s = str_replace(str, arg.key, arg.val);
+
+		if (i > 0)
+			free(str);
+		str = s;
+
 	}
 
 	return str;

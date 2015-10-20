@@ -8,5 +8,6 @@
 
 #define H_FILE_INPUT "input"
 #define H_FILE_OUTPUT "public"
+#define H_FILE_CONF "conf"
 
 #endif

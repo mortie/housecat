@@ -4,6 +4,7 @@
 #include "h_build.h"
 #include "h_file.h"
 #include "h_util.h"
+#include "h_conf.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -33,6 +34,13 @@ h_err* build(char* path)
 
 	if (mkdir(outpath, 0777) == -1 && errno != EEXIST)
 		return h_err_from_errno(errno, outpath);
+
+	//Get config
+	char* conf_path = h_util_path_join(path, H_FILE_CONF);
+	char* conf_str = h_util_file_read(conf_path);
+	if (conf_str == NULL) return h_err_from_errno(errno, conf_path);
+	free(conf_path);
+	h_conf* conf = h_conf_parse(conf_str, strlen(conf_str));
 
 	//index template
 	char* index_path = h_util_path_join(path, H_FILE_THEME_HTML "/index.html");
@@ -66,12 +74,18 @@ h_err* build(char* path)
 		menu_section_str
 	};
 
-	err = h_build(root, outpath, strs);
+	err = h_build(root, outpath, strs, conf);
 	if (err)
 		return err;
 
 	free(inpath);
 	free(outpath);
+	free(conf);
+	free(conf_str);
+	free(index_str);
+	free(post_str);
+	free(menu_str);
+	free(menu_section_str);
 
 	return NULL;
 }
