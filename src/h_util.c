@@ -20,15 +20,33 @@ char* h_util_path_join(char* p1, char* p2)
 
 	int len1 = strlen(p1);
 	int len2 = strlen(p2);
-	int len = len1 + len2 + 2;
-	char* path = malloc(len);
 
-	memcpy(path, p1, len1);
-	memcpy(path + len1, "/", 1);
-	memcpy(path + len1 + 1, p2, len2);
+	//Don't add '/' between the strings if it's already there
+	if (p1[len1 - 1] == '/')
+	{
+		int len = len1 + len2 + 1;
+		char* path = malloc(len);
 
-	path[len - 1] = '\0';
-	return path;
+		memcpy(path, p1, len1);
+		memcpy(path + len1, p2, len2);
+
+		path[len - 1] = '\0';
+		return path;
+	}
+
+	//Add '/' between the strings if it's not there
+	else
+	{
+		int len = len1 + len2 + 2;
+		char* path = malloc(len);
+
+		memcpy(path, p1, len1);
+		memcpy(path + len1, "/", 1);
+		memcpy(path + len1 + 1, p2, len2);
+
+		path[len - 1] = '\0';
+		return path;
+	}
 }
 
 char* h_util_str_join(char* s1, char* s2)

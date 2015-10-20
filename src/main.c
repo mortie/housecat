@@ -29,19 +29,16 @@ h_err* build(char* path)
 		return err;
 
 	if (mkdir(inpath, 0777) == -1 && errno != EEXIST)
-		return h_err_create(errno, inpath);
+		return h_err_from_errno(errno, inpath);
+
+	if (mkdir(outpath, 0777) == -1 && errno != EEXIST)
+		return h_err_from_errno(errno, outpath);
 
 	//index template
 	char* index_path = h_util_path_join(path, H_FILE_THEME_HTML "/index.html");
 	char* index_str = h_util_file_read(index_path);
 	if (index_str == NULL) return h_err_from_errno(errno, index_path);
 	free(index_path);
-
-	//section template
-	char* section_path = h_util_path_join(path, H_FILE_THEME_HTML "/section.html");
-	char* section_str = h_util_file_read(section_path);
-	if (section_str == NULL) return h_err_from_errno(errno, section_path);
-	free(section_path);
 
 	//post template
 	char* post_path = h_util_path_join(path, H_FILE_THEME_HTML "/post.html");
@@ -61,10 +58,9 @@ h_err* build(char* path)
 	if (menu_section_str == NULL) return h_err_from_errno(errno, menu_section_path);
 	free(menu_section_path);
 
-	struct h_build_strs strs =
+	h_build_strs strs =
 	{
 		index_str,
-		section_str,
 		post_str,
 		menu_str,
 		menu_section_str
@@ -73,6 +69,9 @@ h_err* build(char* path)
 	err = h_build(root, outpath, strs);
 	if (err)
 		return err;
+
+	free(inpath);
+	free(outpath);
 
 	return NULL;
 }

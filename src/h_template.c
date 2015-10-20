@@ -43,7 +43,20 @@ h_err* h_template_args_append(h_template_args* args, char* key, char* val)
 	fullkey[len + 4] = '\0';
 	h_template_arg arg = {fullkey, val};
 	args->arguments[args->argnum - 1] = arg;
+
 	return NULL;
+}
+
+void h_template_args_free(h_template_args* args)
+{
+	int i;
+	for (i = 0; i < args->argnum; ++i)
+	{
+		free(args->arguments[i].key);
+	}
+
+	free(args->arguments);
+	free(args);
 }
 
 //Copied from Stack Overflow, http://stackoverflow.com/a/779960

@@ -20,6 +20,8 @@ h_template_args* h_template_args_create();
 
 h_err* h_template_args_append(h_template_args* args, char* key, char* val);
 
+void h_template_args_free(h_template_args* args);
+
 char* h_templateify(char* str, h_template_args* args);
 
 #endif
