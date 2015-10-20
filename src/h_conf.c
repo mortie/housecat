@@ -22,6 +22,10 @@ static void put_pair(h_conf* conf, char* key, char* val)
 	{
 		conf->title = val;
 	}
+	else if (streq(key, "posts_per_page"))
+	{
+		conf->posts_per_page = atoi(val);
+	}
 	else if (streq(key, "logo"))
 	{
 		if (streq(val, "true"))

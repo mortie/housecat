@@ -4,6 +4,7 @@
 typedef struct h_conf
 {
 	char* title;
+	int posts_per_page;
 	int logo;
 } h_conf;
 

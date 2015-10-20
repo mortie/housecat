@@ -25,13 +25,17 @@ h_err* h_build_section(
 		h_section* root,
 		h_section* section,
 		FILE* file,
+		int start,
 		h_build_strs strs,
 		h_conf* conf)
 {
 	char* posts_str = NULL;
 	int i;
-	for (i = 0; i < section->numposts; ++i)
+	for (i = start; i < conf->posts_per_page; ++i)
 	{
+		if (i >= section->numposts)
+			break;
+
 		char* s = build_section_post(section->posts[i], strs);
 		char* s2 = h_util_str_join(posts_str, s);
 		free(s);

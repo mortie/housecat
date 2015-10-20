@@ -54,7 +54,7 @@ static h_err* build_node(
 	FILE* file = fopen(indexpath, "w");
 	free(indexpath);
 
-	h_err* err = h_build_section(root, current, file, strs, conf);
+	h_err* err = h_build_section(root, current, file, 0, strs, conf);
 	if (err)
 		return err;
 
@@ -86,7 +86,7 @@ h_err* h_build(
 		FILE* file = fopen(indexpath, "w");
 		free(indexpath);
 
-		h_err* err = h_build_section(root, root->subs[0], file, strs, conf);
+		h_err* err = h_build_section(root, root->subs[0], file, 0, strs, conf);
 		if (err)
 			return err;
 

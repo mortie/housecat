@@ -31,6 +31,7 @@ h_err* h_build_section(
 		h_section* root,
 		h_section* section,
 		FILE* file,
+		int start,
 		h_build_strs strs,
 		h_conf* conf);
 h_err* h_build_post(
