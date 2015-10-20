@@ -59,6 +59,29 @@ static h_err* build_node(
 		return err;
 
 	fclose(file);
+
+	int ppp = conf->posts_per_page;
+	for (i = 0; i < (current->numposts / ppp) + 1; ++i)
+	{
+		char n[16];
+		snprintf(n, 16, "%d", i);
+		char* dpath = h_util_path_join(dirpath, n);
+		char* indexpath = h_util_path_join(dpath, H_FILE_INDEX);
+
+		if (mkdir(dpath, 0777) == -1 && errno != EEXIST)
+			return h_err_from_errno(errno, dpath);
+
+		FILE* file = fopen(indexpath, "w");
+		free(indexpath);
+
+		h_err* err = h_build_section(root, current, file, i, strs, conf);
+		if (err)
+			return err;
+
+		fclose(file);
+		free(dpath);
+	}
+
 	free(dirpath);
 
 	return NULL;

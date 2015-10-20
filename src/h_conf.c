@@ -33,6 +33,13 @@ static void put_pair(h_conf* conf, char* key, char* val)
 		else
 			conf->logo = 0;
 	}
+	else if (streq(key, "root"))
+	{
+		if (val[0] == '/' && val[1] == '\0')
+			conf->root = "";
+		else
+			conf->root = val;
+	}
 }
 
 h_conf* h_conf_parse(char* str, int len)
@@ -52,7 +59,7 @@ h_conf* h_conf_parse(char* str, int len)
 		{
 			offset_key = i;
 		}
-		else if (c == ':')
+		else if (c == ':' && offset_val == -1)
 		{
 			str[i] = '\0';
 			offset_key_end = i;

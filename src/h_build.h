@@ -11,6 +11,7 @@ typedef struct h_build_strs
 {
 	char* index;
 	char* post;
+	char* page;
 	char* menu;
 	char* menu_section;
 	char* menu_logo;
@@ -31,7 +32,7 @@ h_err* h_build_section(
 		h_section* root,
 		h_section* section,
 		FILE* file,
-		int start,
+		int page,
 		h_build_strs strs,
 		h_conf* conf);
 h_err* h_build_post(

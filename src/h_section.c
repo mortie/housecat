@@ -7,6 +7,20 @@
 #include <dirent.h>
 #include <string.h>
 
+static void reverse_subs(h_section* section)
+{
+	h_section** newsubs = malloc(section->numsubs * sizeof(h_section**));
+
+	int i;
+	for (i = 0; i < section->numsubs; ++i)
+	{
+		newsubs[section->numsubs - i - 1] = section->subs[i];
+	}
+
+	free(section->subs);
+	section->subs = newsubs;
+}
+
 static h_err* init_from_dir(h_section* section, char* path, char* spath, int depth)
 {
 	section->posts = NULL;
@@ -82,6 +96,10 @@ static h_err* init_from_dir(h_section* section, char* path, char* spath, int dep
 
 		free(namelist[n]);
 	}
+
+	//Both posts and subs are reversed now, as posts should be reversed;
+	//we have to reverse the subs again though, as they shouldn't be reversed.
+	reverse_subs(section);
 
 	free(namelist);
 

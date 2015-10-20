@@ -54,6 +54,12 @@ h_err* build(char* path)
 	if (post_str == NULL) return h_err_from_errno(errno, post_path);
 	free(post_path);
 
+	//page template
+	char* page_path = h_util_path_join(path, H_FILE_THEME_HTML "/page.html");
+	char* page_str = h_util_file_read(page_path);
+	if (page_str == NULL) return h_err_from_errno(errno, page_path);
+	free(page_path);
+
 	//menu template
 	char* menu_path = h_util_path_join(path, H_FILE_THEME_HTML "/menu.html");
 	char* menu_str = h_util_file_read(menu_path);
@@ -76,6 +82,7 @@ h_err* build(char* path)
 	{
 		index_str,
 		post_str,
+		page_str,
 		menu_str,
 		menu_section_str,
 		menu_logo_str

@@ -1,3 +1,4 @@
 title: Example Page
 logo: false
 posts_per_page: 5
+root: /
