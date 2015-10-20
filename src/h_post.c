@@ -1,4 +1,5 @@
 #include "h_post.h"
+#include "h_util.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -17,14 +18,7 @@ enum parsemode
 	PARSE_DONE
 };
 
-void h_post_init(h_post* post, char* title, char* html, char* slug)
-{
-	post->title = title;
-	post->html = html;
-	post->slug = slug;
-}
-
-h_err* h_post_init_from_file(h_post* post, char* path)
+h_err* h_post_init_from_file(h_post* post, char* path, char* spath, int depth)
 {
 	//Get the file pointer
 	FILE* f = fopen(path, "r");
@@ -110,6 +104,9 @@ h_err* h_post_init_from_file(h_post* post, char* path)
 	memcpy(post->slug, path + lastslash + 1 + 6, chars * sizeof(char));
 
 	post->slug[chars - 1] = '\0';
+
+	post->path = h_util_path_join(spath, post->slug);
+	post->depth = depth;
 
 	return NULL;
 }

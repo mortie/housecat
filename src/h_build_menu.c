@@ -5,22 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-static char* make_rel_path(int depth)
-{
-	char* str = malloc(depth * 3);
-
-	int i;
-	for (i = 0; i < depth; ++i)
-	{
-		memcpy(str + (i * 3), "../", 3);
-	}
-
-	str[(depth * 3) - 1] = '\0';
-
-	return str;
-}
-
-static char* h_build_menu_node(h_section* root, h_section* current, char* relpath, h_build_strs strs)
+static char* h_build_menu_node(
+		h_section* root,
+		h_section* current,
+		char* relpath,
+		h_build_strs strs)
 {
 	char* subs = NULL;
 
@@ -28,7 +17,7 @@ static char* h_build_menu_node(h_section* root, h_section* current, char* relpat
 	for (i = 0; i < root->numsubs; ++i)
 	{
 		h_section* sub = root->subs[i];
-		char* relpath = make_rel_path(sub->depth);
+		char* relpath = h_util_make_rel_path(sub->depth);
 		char* s = h_util_str_join(
 			subs,
 			h_build_menu_node(sub, current, relpath, strs)
@@ -51,9 +40,11 @@ static char* h_build_menu_node(h_section* root, h_section* current, char* relpat
 	return res;
 }
 
-char* h_build_menu(h_section* root, h_section* current, h_build_strs strs)
+char* h_build_menu(h_section* root,
+		h_section* current,
+		h_build_strs strs)
 {
-	char* relpath = make_rel_path(current->depth);
+	char* relpath = h_util_make_rel_path(current->depth);
 	char* sections = NULL;
 
 	int i;

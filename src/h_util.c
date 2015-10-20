@@ -101,3 +101,18 @@ int h_util_file_err(char* path)
 	fclose(f);
 	return 0;
 }
+
+char* h_util_make_rel_path(int depth)
+{
+	char* str = malloc(depth * 3);
+
+	int i;
+	for (i = 0; i < depth; ++i)
+	{
+		memcpy(str + (i * 3), "../", 3);
+	}
+
+	str[(depth * 3) - 1] = '\0';
+
+	return str;
+}

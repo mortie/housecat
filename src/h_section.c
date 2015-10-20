@@ -42,7 +42,7 @@ static h_err* init_from_dir(h_section* section, char* path, char* spath, int dep
 				return h_err_create(H_ERR_ALLOC, NULL);
 
 			h_err* err = NULL;
-			err = h_post_init_from_file(post, p);
+			err = h_post_init_from_file(post, p, spath, depth + 1);
 			free(p);
 			if (err)
 				return err;

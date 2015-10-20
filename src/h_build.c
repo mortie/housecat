@@ -10,7 +10,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-static h_err* build_node(h_section* root, h_section* current, char* rootdir, h_build_strs strs, h_conf* conf)
+static h_err* build_node(
+		h_section* root,
+		h_section* current,
+		char* rootdir,
+		h_build_strs strs,
+		h_conf* conf)
 {
 	char* dirpath = h_util_path_join(rootdir, current->path);
 
@@ -23,6 +28,26 @@ static h_err* build_node(h_section* root, h_section* current, char* rootdir, h_b
 		h_err* err = build_node(root, current->subs[i], rootdir, strs, conf);
 		if (err)
 			return err;
+	}
+
+	for (i = 0; i < current->numposts; ++i)
+	{
+		h_post* post = current->posts[i];
+		char* dpath = h_util_path_join(rootdir, post->path);
+		char* indexpath = h_util_path_join(dpath, H_FILE_INDEX);
+
+		if (mkdir(dpath, 0777) == -1 && errno != EEXIST)
+			return h_err_from_errno(errno, dpath);
+
+		FILE* file = fopen(indexpath, "w");
+		free(indexpath);
+
+		h_err* err = h_build_post(root, current, post, file, strs, conf);
+		if (err)
+			return err;
+
+		fclose(file);
+		free(dpath);
 	}
 
 	char* indexpath = h_util_path_join(dirpath, H_FILE_INDEX);
@@ -39,7 +64,11 @@ static h_err* build_node(h_section* root, h_section* current, char* rootdir, h_b
 	return NULL;
 }
 
-h_err* h_build(h_section* root, char* rootdir, h_build_strs strs, h_conf* conf)
+h_err* h_build(
+		h_section* root,
+		char* rootdir,
+		h_build_strs strs,
+		h_conf* conf)
 {
 	int i;
 	for (i = 0; i < root->numsubs; ++i)
