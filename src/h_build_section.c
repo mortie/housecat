@@ -39,7 +39,7 @@ h_err* h_build_section(
 		posts_str = s2;
 	}
 
-	char* menu_str = h_build_menu(root, section, strs);
+	char* menu_str = h_build_menu(root, section, strs, conf);
 
 	h_template_args* args = h_template_args_create();
 	h_template_args_append(args, "title", section->title);

@@ -13,6 +13,7 @@ typedef struct h_build_strs
 	char* post;
 	char* menu;
 	char* menu_section;
+	char* menu_logo;
 } h_build_strs;
 
 h_err* h_build(
@@ -24,7 +25,8 @@ h_err* h_build(
 char* h_build_menu(
 		h_section* root,
 		h_section* current,
-		h_build_strs strs);
+		h_build_strs strs,
+		h_conf* conf);
 h_err* h_build_section(
 		h_section* root,
 		h_section* section,

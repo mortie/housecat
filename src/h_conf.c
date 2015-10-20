@@ -6,6 +6,11 @@
 
 #include <stdio.h>
 
+static int streq(char* s1, char* s2)
+{
+	return (strcmp(s1, s2) == 0);
+}
+
 static int iskey(char c)
 {
 	return (isalnum(c) || c == '_');
@@ -13,8 +18,17 @@ static int iskey(char c)
 
 static void put_pair(h_conf* conf, char* key, char* val)
 {
-	if (strcmp(key, "title") == 0)
+	if (streq(key, "title"))
+	{
 		conf->title = val;
+	}
+	else if (streq(key, "logo"))
+	{
+		if (streq(val, "true"))
+			conf->logo = 1;
+		else
+			conf->logo = 0;
+	}
 }
 
 h_conf* h_conf_parse(char* str, int len)

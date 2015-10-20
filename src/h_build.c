@@ -70,12 +70,27 @@ h_err* h_build(
 		h_build_strs strs,
 		h_conf* conf)
 {
+	//Build subs
 	int i;
 	for (i = 0; i < root->numsubs; ++i)
 	{
 		h_err* err = build_node(root, root->subs[i], rootdir, strs, conf);
 		if (err)
 			return err;
+	}
+
+	//Make / be the first section
+	if (root->numsubs > 0)
+	{
+		char* indexpath = h_util_path_join(rootdir, H_FILE_INDEX);
+		FILE* file = fopen(indexpath, "w");
+		free(indexpath);
+
+		h_err* err = h_build_section(root, root->subs[0], file, strs, conf);
+		if (err)
+			return err;
+
+		fclose(file);
 	}
 
 	return NULL;

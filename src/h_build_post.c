@@ -29,7 +29,7 @@ h_err* h_build_post(
 		h_build_strs strs,
 		h_conf* conf)
 {
-	char* menu_str = h_build_menu(root, section, strs);
+	char* menu_str = h_build_menu(root, section, strs, conf);
 	char* post_str = build_post(post, strs);
 
 	h_template_args* args = h_template_args_create();

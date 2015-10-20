@@ -66,12 +66,19 @@ h_err* build(char* path)
 	if (menu_section_str == NULL) return h_err_from_errno(errno, menu_section_path);
 	free(menu_section_path);
 
+	//menu_logo template
+	char* menu_logo_path = h_util_path_join(path, H_FILE_THEME_HTML "/menu_logo.html");
+	char* menu_logo_str = h_util_file_read(menu_logo_path);
+	if (menu_logo_str == NULL) return h_err_from_errno(errno, menu_logo_path);
+	free(menu_logo_path);
+
 	h_build_strs strs =
 	{
 		index_str,
 		post_str,
 		menu_str,
-		menu_section_str
+		menu_section_str,
+		menu_logo_str
 	};
 
 	err = h_build(root, outpath, strs, conf);
