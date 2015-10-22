@@ -9,7 +9,7 @@
 #include <dirent.h>
 #include <string.h>
 
-static h_err* cp_dir(char* dir1, char* dir2, char* start)
+h_err* cp_dir(char* dir1, char* dir2, char* start)
 {
 	DIR* d1 = opendir(dir1);
 	if (d1 == NULL)
@@ -52,7 +52,11 @@ static h_err* cp_dir(char* dir1, char* dir2, char* start)
 	return NULL;
 }
 
-static h_err* build_plugin(char* dirpath, char* outdir, h_build_outfiles outfiles)
+static h_err* build_plugin(
+		char* dirpath,
+		char* outdir,
+		h_build_outfiles outfiles,
+		h_conf* conf)
 {
 	char* confjsonpath = h_util_path_join(dirpath, H_FILE_PLUGIN_CONF);
 	if (confjsonpath == NULL)
@@ -67,23 +71,23 @@ static h_err* build_plugin(char* dirpath, char* outdir, h_build_outfiles outfile
 	free(confjsonpath);
 
 	int jsonlen = strlen(confjson);
+	int rootlen = strlen(conf->root);
 
 	//Copy things to script.js
 	{
-		const char* starttemplate =
+		char* starttemplate =
 			"(function(){\n"
-			"conf = %s;\n";
+			"conf = %s;\n"
+			"conf.root = '%s';\n";
 
-		int len = sizeof(char) * (strlen(starttemplate) + jsonlen);
+		int len = sizeof(char) * (strlen(starttemplate) + jsonlen + rootlen);
 		char* start = malloc(len);
-		snprintf(start, len, starttemplate, confjson);
+		snprintf(start, len, starttemplate, confjson, conf->root);
 
-		const char* end = "\n})();";
+		char* end = "})();";
 		char* jspath = h_util_path_join(dirpath, H_FILE_PLUGIN_JS);
 
-		fputs(start, outfiles.js);
-		h_util_cp_dir_to_file(jspath, outfiles.js);
-		fputs(end, outfiles.js);
+		h_util_cp_dir_to_file_se(jspath, outfiles.js, start, end);
 
 		free(jspath);
 		free(start);
@@ -97,11 +101,12 @@ static h_err* build_plugin(char* dirpath, char* outdir, h_build_outfiles outfile
 			"%s\n"
 			"EOT;\n"
 			"$conf = json_decode($conf);\n"
+			"$conf->root = '%s';\n"
 			"?>\n";
 
-		int len = sizeof(char) * (strlen(starttemplate) + jsonlen);
+		int len = sizeof(char) * (strlen(starttemplate) + jsonlen) + rootlen;
 		char* start = malloc(len);
-		snprintf(start, len, starttemplate, confjson);
+		snprintf(start, len, starttemplate, confjson, conf->root);
 
 		char* phppath = h_util_path_join(dirpath, H_FILE_PLUGIN_PHP);
 
@@ -118,7 +123,7 @@ static h_err* build_plugin(char* dirpath, char* outdir, h_build_outfiles outfile
 	return NULL;
 }
 
-h_err* h_build_plugins(char* rootdir, h_build_outfiles outfiles)
+h_err* h_build_plugins(char* rootdir, h_build_outfiles outfiles, h_conf* conf)
 {
 	char* pluginsdir = h_util_path_join(rootdir, H_FILE_PLUGINS);
 	char* outpluginsdir = h_util_path_join(
@@ -153,7 +158,7 @@ h_err* h_build_plugins(char* rootdir, h_build_outfiles outfiles)
 		char* outdir = h_util_path_join(outpluginsdir, ent->d_name);
 
 		h_err* err;
-		err = build_plugin(dirpath, outdir, outfiles);
+		err = build_plugin(dirpath, outdir, outfiles, conf);
 		if (err)
 			return err;
 

@@ -4,6 +4,7 @@
 #include <string.h>
 #include <errno.h>
 #include <dirent.h>
+#include <sys/stat.h>
 
 char* h_util_path_join(char* p1, char* p2)
 {
@@ -117,8 +118,16 @@ void h_util_file_copy(FILE* f1, FILE* f2)
 
 void h_util_cp_dir_to_file(char* dirpath, FILE* file)
 {
+	h_util_cp_dir_to_file_se(dirpath, file, "", "");
+}
+
+void h_util_cp_dir_to_file_se(char* dirpath, FILE* file, char* start, char* end)
+{
 	struct dirent** namelist;
 	int n = scandir(dirpath, &namelist, NULL, alphasort);
+	if (n <= 0)
+		return;
+
 	int i;
 	for (i = 0; i < n; ++i)
 	{
@@ -130,7 +139,9 @@ void h_util_cp_dir_to_file(char* dirpath, FILE* file)
 		FILE* f = fopen(path, "r");
 		free(path);
 
+		fputs(start, file);
 		h_util_file_copy(f, file);
+		fputs(end, file);
 
 		fclose(f);
 		free(ent);

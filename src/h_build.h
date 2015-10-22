@@ -49,6 +49,7 @@ h_err* h_build_post(
 		h_build_strs strs,
 		h_conf* conf);
 
-h_err* h_build_plugins(char* rootdir, h_build_outfiles outfiles);
+h_err* h_build_theme(char* dirpath, h_build_outfiles outfiles);
+h_err* h_build_plugins(char* rootdir, h_build_outfiles outfiles, h_conf* conf);
 
 #endif

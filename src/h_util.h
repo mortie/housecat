@@ -9,5 +9,6 @@ char* h_util_file_read(char* path);
 int h_util_file_err(char* path);
 void h_util_file_copy(FILE* f1, FILE* f2);
 void h_util_cp_dir_to_file(char* dirpath, FILE* file);
+void h_util_cp_dir_to_file_se(char* dirpath, FILE* file, char* start, char* end);
 
 #endif

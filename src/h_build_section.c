@@ -89,6 +89,7 @@ h_err* h_build_section(
 	h_template_args_append(args, "s_title", conf->title);
 	h_template_args_append(args, "menu", menu_str);
 	h_template_args_append(args, "page", page_str);
+	h_template_args_append(args, "s_root", conf->root);
 	char* res = h_templateify(strs.index, args);
 	h_template_args_free(args);
 
