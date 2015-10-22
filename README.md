@@ -22,6 +22,9 @@ Housecat's interface is simple; `housecat <directory>`. It expects the target di
 	|       |-- 00001-hello2.html
 	|
 	|-- theme/ - The directory containing the theme files.
+	|
+	|-- plugins/
+	    |-- foo/
 
 See the [example directory](http://git.mort.coffee/mort/housecat/src/master/example) for an example.
 
