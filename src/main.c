@@ -92,6 +92,42 @@ h_err* build(char* path)
 	if (err)
 		return err;
 
+	//Deal with meta things
+
+	char* metapath = h_util_path_join(path, H_FILE_OUTPUT "/" H_FILE_OUT_META);
+	if (metapath == NULL)
+		return h_err_create(H_ERR_ALLOC, NULL);
+	if (mkdir(metapath, 0777) == -1 && errno != EEXIST)
+		return h_err_from_errno(errno, metapath);
+	free(metapath);
+
+	h_build_outfiles outfiles;
+
+	//public/_/script.js
+	char* outjspath = h_util_path_join(
+		outpath, H_FILE_OUT_META "/" H_FILE_OUT_JS
+	);
+	outfiles.js = fopen(outjspath, "w");
+	if (outfiles.js == NULL)
+		return h_err_from_errno(errno, outjspath);
+	free(outjspath);
+
+	//public/_/style.css
+	char* outcsspath = h_util_path_join(
+		outpath, H_FILE_OUT_META "/" H_FILE_OUT_CSS
+	);
+	outfiles.css = fopen(outcsspath, "w");
+	if (outfiles.css == NULL)
+		return h_err_from_errno(errno, outcsspath);
+	free(outcsspath);
+
+	//Prepare plugins
+	err = h_build_plugins(path, outfiles);
+	if (err)
+		return err;
+
+	fclose(outfiles.js);
+	fclose(outfiles.css);
 	free(inpath);
 	free(outpath);
 	free(conf);

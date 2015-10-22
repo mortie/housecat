@@ -17,6 +17,12 @@ typedef struct h_build_strs
 	char* menu_logo;
 } h_build_strs;
 
+typedef struct h_build_outfiles
+{
+	FILE* js;
+	FILE* css;
+} h_build_outfiles;
+
 h_err* h_build(
 		h_section* root,
 		char* rootdir,
@@ -42,5 +48,7 @@ h_err* h_build_post(
 		FILE* file,
 		h_build_strs strs,
 		h_conf* conf);
+
+h_err* h_build_plugins(char* rootdir, h_build_outfiles outfiles);
 
 #endif
