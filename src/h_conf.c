@@ -64,12 +64,12 @@ h_conf* h_conf_parse(char* str, int len)
 			str[i] = '\0';
 			offset_key_end = i;
 		}
-		else if (offset_key_end != -1 && iskey(c))
+		else if (offset_key_end != -1 && !isspace(c))
 		{
 			offset_val = i;
 			offset_key_end = -1;
 		}
-		else if (c == '\n')
+		else if (offset_val != -1 && c == '\n')
 		{
 			str[i] = '\0';
 
