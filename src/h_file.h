@@ -15,7 +15,7 @@
 #define H_FILE_PLUGIN_CONF "conf.json"
 
 #define H_FILE_OUT_META "_"
-#define H_FILE_OUT_PLUGINS "plugins"
+#define H_FILE_OUT_PHP "php"
 #define H_FILE_OUT_JS "script.js"
 #define H_FILE_OUT_CSS "style.css"
 

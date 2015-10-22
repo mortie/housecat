@@ -14,6 +14,10 @@ static h_err* cp_dir(char* dir1, char* dir2, char* start)
 	DIR* d1 = opendir(dir1);
 	if (d1 == NULL)
 		return h_err_from_errno(errno, dir1);
+
+	if (mkdir(dir2, 0777) == -1 && errno != EEXIST)
+		return h_err_from_errno(errno, dir2);
+
 	DIR* d2 = opendir(dir2);
 	if (d2 == NULL)
 		return h_err_from_errno(errno, dir2);
@@ -22,10 +26,17 @@ static h_err* cp_dir(char* dir1, char* dir2, char* start)
 	struct dirent* dp = readdir(d1);
 	while (dp != NULL)
 	{
+		if (dp->d_name[0] == '.')
+		{
+			dp = readdir(d1);
+			continue;
+		}
+
 		char* p1 = h_util_path_join(dir1, dp->d_name);
 		char* p2 = h_util_path_join(dir2, dp->d_name);
 		FILE* f1 = fopen(p1, "r");
 		FILE* f2 = fopen(p2, "w+");
+
 		free(p1);
 		free(p2);
 
@@ -34,6 +45,8 @@ static h_err* cp_dir(char* dir1, char* dir2, char* start)
 
 		fclose(f1);
 		fclose(f2);
+
+		dp = readdir(d1);
 	}
 
 	return NULL;
@@ -90,8 +103,13 @@ static h_err* build_plugin(char* dirpath, char* outdir, h_build_outfiles outfile
 		char* start = malloc(len);
 		snprintf(start, len, starttemplate, confjson);
 
-		cp_dir(dirpath, outdir, start);
+		char* phppath = h_util_path_join(dirpath, H_FILE_PLUGIN_PHP);
 
+		h_err* err = cp_dir(phppath, outdir, start);
+		if (err)
+			return err;
+
+		free(phppath);
 		free(start);
 	}
 
@@ -105,7 +123,7 @@ h_err* h_build_plugins(char* rootdir, h_build_outfiles outfiles)
 	char* pluginsdir = h_util_path_join(rootdir, H_FILE_PLUGINS);
 	char* outpluginsdir = h_util_path_join(
 		rootdir,
-		H_FILE_OUTPUT "/" H_FILE_OUT_META "/" H_FILE_OUT_PLUGINS
+		H_FILE_OUTPUT "/" H_FILE_OUT_META "/" H_FILE_OUT_PHP
 	);
 
 	//Check status of rootdir/plugins, returning if it doesn't exist

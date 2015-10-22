@@ -105,12 +105,12 @@ int h_util_file_err(char* path)
 void h_util_file_copy(FILE* f1, FILE* f2)
 {
 	fseek(f1, 0L, SEEK_END);
-	long len = ftell(f1) + 1;
+	long len = ftell(f1);
 	fseek(f1, 0L, SEEK_SET);
 
-	char* str = malloc(len);
-	fread(str, sizeof(char), len - 1, f1);
-	str[len - 1] = '\0';
+	char* str = malloc(len + 1);
+	fread(str, sizeof(char), len, f1);
+	str[len] = '\0';
 
 	fputs(str, f2);
 }
