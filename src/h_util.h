@@ -10,5 +10,7 @@ int h_util_file_err(char* path);
 void h_util_file_copy(FILE* f1, FILE* f2);
 void h_util_cp_dir_to_file(char* dirpath, FILE* file);
 void h_util_cp_dir_to_file_se(char* dirpath, FILE* file, char* start, char* end);
+void h_util_cp_dir(char* dir1, char* dir2);
+void h_util_cp_dir_se(char* dir1, char* dir2, char* start, char* end);
 
 #endif

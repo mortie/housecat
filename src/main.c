@@ -121,6 +121,11 @@ h_err* build(char* path)
 		return h_err_from_errno(errno, outcsspath);
 	free(outcsspath);
 
+	//Prepare imgs
+	err = h_build_imgs(path);
+	if (err)
+		return err;
+
 	//Prepare theme things
 	err = h_build_theme(path, outfiles);
 	if (err)

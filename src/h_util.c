@@ -148,3 +148,42 @@ void h_util_cp_dir_to_file_se(char* dirpath, FILE* file, char* start, char* end)
 	}
 	free(namelist);
 }
+
+void h_util_cp_dir(char* dir1, char* dir2)
+{
+	h_util_cp_dir_se(dir1, dir2, "", "");
+}
+
+void h_util_cp_dir_se(char* dir1, char* dir2, char* start, char* end)
+{
+	DIR* d1 = opendir(dir1);
+
+	struct dirent* dp = readdir(d1);
+	while (dp != NULL)
+	{
+		if (dp->d_name[0] == '.')
+		{
+			dp = readdir(d1);
+			continue;
+		}
+
+		char* p1 = h_util_path_join(dir1, dp->d_name);
+		char* p2 = h_util_path_join(dir2, dp->d_name);
+		FILE* f1 = fopen(p1, "r");
+		FILE* f2 = fopen(p2, "w+");
+
+		free(p1);
+		free(p2);
+
+		fputs(start, f2);
+		h_util_file_copy(f1, f2);
+		fputs(end, f2);
+
+		fclose(f1);
+		fclose(f2);
+
+		dp = readdir(d1);
+	}
+
+	return NULL;
+}

@@ -9,49 +9,6 @@
 #include <dirent.h>
 #include <string.h>
 
-h_err* cp_dir(char* dir1, char* dir2, char* start)
-{
-	DIR* d1 = opendir(dir1);
-	if (d1 == NULL)
-		return h_err_from_errno(errno, dir1);
-
-	if (mkdir(dir2, 0777) == -1 && errno != EEXIST)
-		return h_err_from_errno(errno, dir2);
-
-	DIR* d2 = opendir(dir2);
-	if (d2 == NULL)
-		return h_err_from_errno(errno, dir2);
-	closedir(d2);
-
-	struct dirent* dp = readdir(d1);
-	while (dp != NULL)
-	{
-		if (dp->d_name[0] == '.')
-		{
-			dp = readdir(d1);
-			continue;
-		}
-
-		char* p1 = h_util_path_join(dir1, dp->d_name);
-		char* p2 = h_util_path_join(dir2, dp->d_name);
-		FILE* f1 = fopen(p1, "r");
-		FILE* f2 = fopen(p2, "w+");
-
-		free(p1);
-		free(p2);
-
-		fputs(start, f2);
-		h_util_file_copy(f1, f2);
-
-		fclose(f1);
-		fclose(f2);
-
-		dp = readdir(d1);
-	}
-
-	return NULL;
-}
-
 static h_err* build_plugin(
 		char* dirpath,
 		char* outdir,
@@ -110,9 +67,17 @@ static h_err* build_plugin(
 
 		char* phppath = h_util_path_join(dirpath, H_FILE_PLUGIN_PHP);
 
-		h_err* err = cp_dir(phppath, outdir, start);
-		if (err)
-			return err;
+		//Make sure dirs are okay
+		DIR* d1 = opendir(phppath);
+		if (d1 == NULL)
+			return h_err_from_errno(errno, phppath);
+		closedir(d1);
+		DIR* d2 = opendir(outdir);
+		if (d2 == NULL)
+			return h_err_from_errno(errno, outdir);
+		closedir(d2);
+
+		h_util_cp_dir_se(phppath, outdir, start, "");
 
 		free(phppath);
 		free(start);
@@ -134,9 +99,9 @@ h_err* h_build_plugins(char* rootdir, h_build_outfiles outfiles, h_conf* conf)
 	//Check status of rootdir/plugins, returning if it doesn't exist
 	{
 		int err = h_util_file_err(pluginsdir);
-		if (err == EEXIST)
+		if (err == ENOENT)
 			return NULL;
-		else if (err)
+		if (err && err != EEXIST)
 			return h_err_from_errno(err, pluginsdir);
 	}
 
