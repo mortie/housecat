@@ -26,6 +26,6 @@ Housecat's interface is simple; `housecat <directory>`. It expects the target di
 	|-- plugins/
 	    |-- foo/
 
-See the [example directory](http://git.mort.coffee/mort/housecat/src/master/example) for an example.
+See the [example directory](https://github.com/mortie/housecat/tree/master/example) for an example.
 
 Housecat will create a directory, called `public`, in the target directory. This directory will contain the compiled HTML files, and should be served by a web server.
