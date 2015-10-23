@@ -35,10 +35,8 @@ h_err* h_build_imgs(char* rootdir)
 	if (d1 == NULL)
 		return h_err_from_errno(errno, imgsdir);
 	closedir(d1);
-	DIR* d2 = opendir(outimgsdir);
-	if (d2 == NULL)
+	if (mkdir(outimgsdir, 0777) == -1 && errno != EEXIST)
 		return h_err_from_errno(errno, outimgsdir);
-	closedir(d2);
 
 	h_util_cp_dir(imgsdir, outimgsdir);
 

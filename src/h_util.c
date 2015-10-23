@@ -114,6 +114,7 @@ void h_util_file_copy(FILE* f1, FILE* f2)
 	str[len] = '\0';
 
 	fputs(str, f2);
+	free(str);
 }
 
 void h_util_cp_dir_to_file(char* dirpath, FILE* file)

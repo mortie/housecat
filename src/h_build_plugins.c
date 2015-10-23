@@ -72,10 +72,8 @@ static h_err* build_plugin(
 		if (d1 == NULL)
 			return h_err_from_errno(errno, phppath);
 		closedir(d1);
-		DIR* d2 = opendir(outdir);
-		if (d2 == NULL)
+		if (mkdir(outdir, 0777) == -1 && errno != EEXIST)
 			return h_err_from_errno(errno, outdir);
-		closedir(d2);
 
 		h_util_cp_dir_se(phppath, outdir, start, "");
 
