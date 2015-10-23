@@ -184,6 +184,4 @@ void h_util_cp_dir_se(char* dir1, char* dir2, char* start, char* end)
 
 		dp = readdir(d1);
 	}
-
-	return NULL;
 }
