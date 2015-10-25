@@ -7,6 +7,10 @@
 #include <string.h>
 #include <ctype.h>
 
+static int startswith(char* str, char* substr) {
+	return strncmp(str, substr, strlen(substr)) == 0;
+}
+
 enum parsemode
 {
 	PARSE_BEFORE,
@@ -107,6 +111,11 @@ h_err* h_post_init_from_file(h_post* post, char* path, char* spath, int depth)
 
 	post->path = h_util_path_join(spath, post->slug);
 	post->depth = depth;
+
+	if (startswith(post->title, "DRAFT:"))
+		post->isdraft = 1;
+	else
+		post->isdraft = 0;
 
 	return NULL;
 }

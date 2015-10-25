@@ -11,6 +11,7 @@ typedef struct h_post
 	char* html;
 	char* path;
 	int depth;
+	int isdraft;
 } h_post;
 
 //Initiate a post from file
