@@ -1,7 +1,7 @@
-#include "h_build.h"
-#include "h_file.h"
-#include "h_template.h"
-#include "h_util.h"
+#include "build.h"
+#include "file.h"
+#include "template.h"
+#include "util.h"
 
 #include <stdlib.h>
 #include <stdio.h>

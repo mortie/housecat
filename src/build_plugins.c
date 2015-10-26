@@ -1,6 +1,6 @@
-#include "h_build.h"
-#include "h_util.h"
-#include "h_file.h"
+#include "build.h"
+#include "util.h"
+#include "file.h"
 
 #include <stdlib.h>
 #include <errno.h>

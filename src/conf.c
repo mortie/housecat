@@ -1,4 +1,4 @@
-#include "h_conf.h"
+#include "conf.h"
 
 #include <stdlib.h>
 #include <ctype.h>

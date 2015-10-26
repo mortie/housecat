@@ -1,5 +1,5 @@
-#include "h_section.h"
-#include "h_util.h"
+#include "section.h"
+#include "util.h"
 
 #include <stdlib.h>
 #include <stdio.h>

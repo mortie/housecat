@@ -1,7 +1,7 @@
 #ifndef CMS_TEMPLATE_H
 #define CMS_TEMPLATE_H
 
-#include "h_err.h"
+#include "err.h"
 
 typedef struct h_template_arg
 {

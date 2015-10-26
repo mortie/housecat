@@ -1,9 +1,9 @@
 #ifndef H_BUILD_H
 #define H_BUILD_H
 
-#include "h_err.h"
-#include "h_section.h"
-#include "h_conf.h"
+#include "err.h"
+#include "section.h"
+#include "conf.h"
 
 #include <stdio.h>
 

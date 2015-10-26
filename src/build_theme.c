@@ -1,13 +1,8 @@
-#include "h_build.h"
-#include "h_util.h"
-#include "h_file.h"
+#include "build.h"
+#include "util.h"
+#include "file.h"
 
 #include <stdlib.h>
-#include <errno.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <dirent.h>
-#include <string.h>
 
 h_err* h_build_theme(char* dirpath, h_build_outfiles outfiles)
 {

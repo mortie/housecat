@@ -1,5 +1,5 @@
-#include "h_post.h"
-#include "h_util.h"
+#include "post.h"
+#include "util.h"
 
 #include <stdlib.h>
 #include <stdio.h>

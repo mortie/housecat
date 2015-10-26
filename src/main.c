@@ -1,10 +1,10 @@
-#include "h_err.h"
-#include "h_section.h"
-#include "h_post.h"
-#include "h_build.h"
-#include "h_file.h"
-#include "h_util.h"
-#include "h_conf.h"
+#include "err.h"
+#include "section.h"
+#include "post.h"
+#include "build.h"
+#include "file.h"
+#include "util.h"
+#include "conf.h"
 
 #include <stdlib.h>
 #include <stdio.h>

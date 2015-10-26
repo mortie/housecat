@@ -1,8 +1,8 @@
 #ifndef H_SECTION_H
 #define H_SECTION_H
 
-#include "h_err.h"
-#include "h_post.h"
+#include "err.h"
+#include "post.h"
 
 typedef struct h_section
 {

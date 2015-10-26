@@ -1,7 +1,7 @@
 #ifndef H_PAGE_H
 #define H_PAGE_H
 
-#include "h_err.h"
+#include "err.h"
 
 typedef struct h_post
 {

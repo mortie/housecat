@@ -1,4 +1,4 @@
-#include "h_template.h"
+#include "template.h"
 
 #include <stdlib.h>
 #include <string.h>
