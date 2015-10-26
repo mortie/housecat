@@ -44,8 +44,8 @@ build()
 			mkdir -p "$2/$F"
 			build "$1/$F" "$2/$F"
 		else
-			html=$(sed 's/\.md$/.html/' <<< "$F")
-			cmark < "$1/$F" > "$2/$html"
+			name=$(sed 's/\.md$/.html/' <<< "$F")
+			cmark < "$1/$F" > "$2/$name"
 		fi
 	done
 }
