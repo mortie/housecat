@@ -29,8 +29,11 @@ static h_err* build_plugin(
 
 	int jsonlen = strlen(confjson);
 	int rootlen = strlen(conf->root);
+	char* jspath = h_util_path_join(dirpath, H_FILE_PLUGIN_JS);
+	char* phppath = h_util_path_join(dirpath, H_FILE_PLUGIN_PHP);
 
 	//Copy things to script.js
+	if (h_util_file_err(jspath) != ENOENT)
 	{
 		char* starttemplate =
 			"(function(){\n"
@@ -42,15 +45,14 @@ static h_err* build_plugin(
 		snprintf(start, len, starttemplate, confjson, conf->root);
 
 		char* end = "})();";
-		char* jspath = h_util_path_join(dirpath, H_FILE_PLUGIN_JS);
 
 		h_util_cp_dir_to_file_se(jspath, outfiles.js, start, end);
 
-		free(jspath);
 		free(start);
 	}
 
 	//Copy PHP files
+	if (h_util_file_err(phppath) != ENOENT)
 	{
 		const char* starttemplate =
 			"<?php\n"
@@ -65,8 +67,6 @@ static h_err* build_plugin(
 		char* start = malloc(len);
 		snprintf(start, len, starttemplate, confjson, conf->root);
 
-		char* phppath = h_util_path_join(dirpath, H_FILE_PLUGIN_PHP);
-
 		//Make sure dirs are okay
 		DIR* d1 = opendir(phppath);
 		if (d1 == NULL)
@@ -77,11 +77,12 @@ static h_err* build_plugin(
 
 		h_util_cp_dir_se(phppath, outdir, start, "");
 
-		free(phppath);
 		free(start);
 	}
 
 	free(confjson);
+	free(phppath);
+	free(jspath);
 
 	return NULL;
 }
