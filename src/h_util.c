@@ -109,11 +109,10 @@ void h_util_file_copy(FILE* f1, FILE* f2)
 	long len = ftell(f1);
 	fseek(f1, 0L, SEEK_SET);
 
-	char* str = malloc(len + 1);
+	char* str = malloc(len);
 	fread(str, sizeof(char), len, f1);
-	str[len] = '\0';
 
-	fputs(str, f2);
+	fwrite(str, sizeof(char), len, f2);
 	free(str);
 }
 
@@ -185,4 +184,7 @@ void h_util_cp_dir_se(char* dir1, char* dir2, char* start, char* end)
 
 		dp = readdir(d1);
 	}
+
+	free(dp);
+	closedir(d1);
 }
