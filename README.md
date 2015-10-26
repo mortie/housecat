@@ -23,8 +23,7 @@ Housecat's interface is simple; `housecat <directory>`. It expects the target di
 	|
 	|-- theme/ - The directory containing the theme files.
 	|
-	|-- plugins/
-	    |-- foo/
+	|-- plugins/ - The directory containing plugins, if any
 
 See the [example directory](https://github.com/mortie/housecat/tree/master/example) for an example.
 
