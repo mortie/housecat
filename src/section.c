@@ -57,9 +57,9 @@ static h_err* init_from_dir(h_section* section, char* path, char* spath, int dep
 
 			h_err* err = NULL;
 			err = h_post_init_from_file(post, p, spath, depth + 1);
-			free(p);
 			if (err)
 				return err;
+			free(p);
 
 			err = h_section_add_post(section, post);
 			if (err)

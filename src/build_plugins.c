@@ -37,7 +37,7 @@ static h_err* build_plugin(
 	{
 		char* starttemplate =
 			"(function(){\n"
-			"conf = %s;\n"
+			"var conf = %s;\n"
 			"conf.root = '%s';\n";
 
 		int len = sizeof(char) * (strlen(starttemplate) + jsonlen + rootlen);

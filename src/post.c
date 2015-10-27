@@ -24,6 +24,9 @@ enum parsemode
 
 h_err* h_post_init_from_file(h_post* post, char* path, char* spath, int depth)
 {
+	post->title = NULL;
+	post->slug = NULL;
+
 	//Get the file pointer
 	FILE* f = fopen(path, "r");
 	if (f == NULL)
@@ -81,6 +84,9 @@ h_err* h_post_init_from_file(h_post* post, char* path, char* spath, int depth)
 		//Build string holding the file
 		fstr[i++] = c;
 	}
+
+	if (post->title == NULL)
+		return h_err_create(H_ERR_FORMAT_NOTITLE, path);
 
 	fstr[i - 1] = '\0';
 	post->_fstr = fstr;

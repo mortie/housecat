@@ -15,6 +15,8 @@ static char* str_from_err(h_err* err)
 		return "Allocation error";
 	case H_ERR_ACCESS:
 		return "Permission denied";
+	case H_ERR_FORMAT_NOTITLE:
+		return "Missing Title";
 	default:
 		return "Unknown error";
 	}

@@ -9,6 +9,7 @@ typedef enum h_err_type
 	H_ERR_OTHER,
 	H_ERR_ALLOC,
 	H_ERR_ACCESS,
+	H_ERR_FORMAT_NOTITLE,
 	H_ERR_ERRNO
 } h_err_type;
 
