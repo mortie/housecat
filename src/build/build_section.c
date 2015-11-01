@@ -1,6 +1,6 @@
-#include "build.h"
-#include "template.h"
-#include "util.h"
+#include "../build.h"
+#include "../template.h"
+#include "../util.h"
 
 #include <stdlib.h>
 

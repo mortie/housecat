@@ -1,6 +1,6 @@
-#include "build.h"
-#include "util.h"
-#include "file.h"
+#include "../build.h"
+#include "../util.h"
+#include "../file.h"
 
 #include <stdlib.h>
 
