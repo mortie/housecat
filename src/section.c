@@ -25,6 +25,8 @@ static h_err* init_from_dir(h_section* section, char* path, char* spath, int dep
 {
 	section->posts = NULL;
 	section->numposts = 0;
+	section->drafts = NULL;
+	section->numdrafts = 0;
 	section->subs = NULL;
 	section->numsubs = 0;
 
@@ -44,7 +46,7 @@ static h_err* init_from_dir(h_section* section, char* path, char* spath, int dep
 		if (ent->d_name[0] == '.')
 			continue;
 
-		//If entry is a file, add it to the posts array
+		//If entry is a file, add it to either posts or drafts
 		if (ent->d_type == DT_REG)
 		{
 			h_post* post = malloc(sizeof(h_post));
@@ -61,7 +63,11 @@ static h_err* init_from_dir(h_section* section, char* path, char* spath, int dep
 				return err;
 			free(p);
 
-			err = h_section_add_post(section, post);
+			if (post->isdraft)
+				err = h_section_add_draft(section, post);
+			else
+				err = h_section_add_post(section, post);
+
 			if (err)
 				return err;
 		}
@@ -163,6 +169,18 @@ h_err* h_section_add_post(h_section* section, h_post* post)
 		return h_err_create(H_ERR_ALLOC, NULL);
 
 	section->posts[section->numposts - 1] = post;
+
+	return NULL;
+}
+
+h_err* h_section_add_draft(h_section* section, h_post* post)
+{
+	section->numdrafts += 1;
+	section->drafts = realloc(section->drafts, section->numdrafts * sizeof(h_post));
+	if (section->drafts == NULL)
+		return h_err_create(H_ERR_ALLOC, NULL);
+
+	section->drafts[section->numdrafts - 1] = post;
 
 	return NULL;
 }

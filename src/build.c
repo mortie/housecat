@@ -10,6 +10,33 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+static h_err* build_post(
+		h_section* root,
+		h_section* current,
+		char* rootdir,
+		h_post* post,
+		h_build_strs strs,
+		h_conf* conf)
+{
+	char* dpath = h_util_path_join(rootdir, post->path);
+	char* indexpath = h_util_path_join(dpath, H_FILE_INDEX);
+
+	if (mkdir(dpath, 0777) == -1 && errno != EEXIST)
+		return h_err_from_errno(errno, dpath);
+
+	FILE* file = fopen(indexpath, "w");
+	free(indexpath);
+
+	h_err* err = h_build_post(root, current, post, file, strs, conf);
+	if (err)
+		return err;
+
+	fclose(file);
+	free(dpath);
+
+	return NULL;
+}
+
 static h_err* build_node(
 		h_section* root,
 		h_section* current,
@@ -23,6 +50,8 @@ static h_err* build_node(
 		return h_err_from_errno(errno, dirpath);
 
 	int i;
+
+	//Recurse through sub sections
 	for (i = 0; i < current->numsubs; ++i)
 	{
 		h_err* err = build_node(root, current->subs[i], rootdir, strs, conf);
@@ -30,24 +59,22 @@ static h_err* build_node(
 			return err;
 	}
 
+	//Go through individual posts and build them
 	for (i = 0; i < current->numposts; ++i)
 	{
 		h_post* post = current->posts[i];
-		char* dpath = h_util_path_join(rootdir, post->path);
-		char* indexpath = h_util_path_join(dpath, H_FILE_INDEX);
-
-		if (mkdir(dpath, 0777) == -1 && errno != EEXIST)
-			return h_err_from_errno(errno, dpath);
-
-		FILE* file = fopen(indexpath, "w");
-		free(indexpath);
-
-		h_err* err = h_build_post(root, current, post, file, strs, conf);
+		h_err* err = build_post(root, current, rootdir, post, strs, conf);
 		if (err)
 			return err;
+	}
 
-		fclose(file);
-		free(dpath);
+	//Go through drafts and build them
+	for (i = 0; i < current->numdrafts; ++i)
+	{
+		h_post* post = current->drafts[i];
+		h_err* err = build_post(root, current, rootdir, post, strs, conf);
+		if (err)
+			return err;
 	}
 
 	char* indexpath = h_util_path_join(dirpath, H_FILE_INDEX);

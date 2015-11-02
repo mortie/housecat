@@ -31,9 +31,6 @@ static char* build_section_page(
 		if (i >= section->numposts)
 			break;
 
-		if (section->posts[i]->isdraft)
-			continue;
-
 		char* s = build_section_post(section->posts[i], strs, conf);
 		char* s2 = h_util_str_join(posts_str, s);
 		free(s);
