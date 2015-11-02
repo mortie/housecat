@@ -85,6 +85,7 @@ h_err* h_build_section(
 	char* page_str = build_section_page(section, page, strs, conf);
 
 	h_template_args* args = h_template_args_create();
+	h_template_args_append(args, "section", section->path);
 	h_template_args_append(args, "title", section->title);
 	h_template_args_append(args, "s_title", conf->title);
 	h_template_args_append(args, "menu", menu_str);

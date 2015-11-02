@@ -29,6 +29,7 @@ h_err* h_build_post(
 	char* post_str = build_post(post, strs, conf);
 
 	h_template_args* args = h_template_args_create();
+	h_template_args_append(args, "section", section->path);
 	h_template_args_append(args, "title", post->title);
 	h_template_args_append(args, "s_title", conf->title);
 	h_template_args_append(args, "menu", menu_str);
