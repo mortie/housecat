@@ -42,8 +42,11 @@ static h_err* init_from_dir(h_section* section, char* path, char* spath, int dep
 	{
 		struct dirent* ent = namelist[n];
 
-		//Skip hidden entries
+		//Skip hidden entries,
+		//or entries starting with _
 		if (ent->d_name[0] == '.')
+			continue;
+		if (ent->d_name[0] == '_')
 			continue;
 
 		//If entry is a file, add it to either posts or drafts
