@@ -1,6 +1,7 @@
 #include "../build.h"
 #include "../util.h"
 #include "../file.h"
+#include "../strs.h"
 
 #include <stdlib.h>
 #include <errno.h>
@@ -35,16 +36,13 @@ static h_err* build_plugin(
 	//Copy things to script.js
 	if (h_util_file_err(jspath) != ENOENT)
 	{
-		char* starttemplate =
-			"(function(){\n"
-			"var conf = %s;\n"
-			"conf.root = '%s';\n";
+		char* starttemplate = H_STRS_JS_START;
 
 		int len = sizeof(char) * (strlen(starttemplate) + jsonlen + rootlen);
 		char* start = malloc(len);
 		snprintf(start, len, starttemplate, confjson, conf->root);
 
-		char* end = "})();";
+		char* end = H_STRS_JS_END;
 
 		h_util_cp_dir_to_file_se(jspath, outfiles.js, start, end);
 
@@ -54,14 +52,7 @@ static h_err* build_plugin(
 	//Copy PHP files
 	if (h_util_file_err(phppath) != ENOENT)
 	{
-		const char* starttemplate =
-			"<?php\n"
-			"$conf = <<<EOT\n"
-			"%s\n"
-			"EOT;\n"
-			"$conf = json_decode($conf);\n"
-			"$conf->root = '%s';\n"
-			"?>\n";
+		const char* starttemplate = H_STRS_PHP_START;
 
 		int len = sizeof(char) * (strlen(starttemplate) + jsonlen) + rootlen;
 		char* start = malloc(len);

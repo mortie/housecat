@@ -5,6 +5,7 @@
 #include "file.h"
 #include "util.h"
 #include "conf.h"
+#include "strs.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -125,6 +126,9 @@ h_err* build(char* path)
 	err = h_build_imgs(path);
 	if (err)
 		return err;
+
+	//Prepare basic script.js library
+	fputs(H_STRS_JS_LIB, outfiles.js);
 
 	//Prepare theme things
 	err = h_build_theme(path, outfiles);
