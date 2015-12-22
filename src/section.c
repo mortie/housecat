@@ -143,7 +143,7 @@ static h_err* init_from_dir(h_section* section, char* path, char* spath, int dep
 
 	//Make a title from the slug
 
-	length = strlen(section->slug) + 1;
+	length = chars;
 	section->title = malloc(length * sizeof(char));
 	memcpy(section->title, section->slug, (length - 1) * sizeof(char));
 	for (i = 0; i < length - 1; ++i)
