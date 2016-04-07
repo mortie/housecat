@@ -23,7 +23,7 @@
 		"} else {\n" \
 			"lib.elems.post = q('.post');\n" \
 		"}\n" \
-	"})()\n"
+	"})();\n"
 
 #define H_STRS_PHP_START \
 	"<?php\n" \
