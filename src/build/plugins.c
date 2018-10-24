@@ -12,7 +12,8 @@
 
 static h_err* build_plugin(
 		char* dirpath,
-		char* outdir,
+		char* outdirphp,
+		char* outdirmisc,
 		h_build_outfiles outfiles,
 		h_conf* conf)
 {
@@ -32,6 +33,7 @@ static h_err* build_plugin(
 	int rootlen = strlen(conf->root);
 	char* jspath = h_util_path_join(dirpath, H_FILE_PLUGIN_JS);
 	char* phppath = h_util_path_join(dirpath, H_FILE_PLUGIN_PHP);
+	char* miscpath = h_util_path_join(dirpath, H_FILE_PLUGIN_MISC);
 
 	//Copy things to script.js
 	if (h_util_file_err(jspath) != ENOENT)
@@ -63,17 +65,32 @@ static h_err* build_plugin(
 		if (d1 == NULL)
 			return h_err_from_errno(errno, phppath);
 		closedir(d1);
-		if (mkdir(outdir, 0777) == -1 && errno != EEXIST)
-			return h_err_from_errno(errno, outdir);
+		if (mkdir(outdirphp, 0777) == -1 && errno != EEXIST)
+			return h_err_from_errno(errno, outdirphp);
 
-		h_util_cp_dir_se(phppath, outdir, start, "");
+		h_util_cp_dir_se(phppath, outdirphp, start, "");
 
 		free(start);
+	}
+
+	//Copy misc files
+	if (h_util_file_err(miscpath) != ENOENT)
+	{
+		//Make sure dirs are okay
+		DIR* d1 = opendir(miscpath);
+		if (d1 == NULL)
+			return h_err_from_errno(errno, miscpath);
+		closedir(d1);
+		if (mkdir(outdirmisc, 0777) == -1 && errno != EEXIST)
+			return h_err_from_errno(errno, outdirmisc);
+
+		h_util_cp_dir(miscpath, outdirmisc);
 	}
 
 	free(confjson);
 	free(phppath);
 	free(jspath);
+	free(miscpath);
 
 	return NULL;
 }
@@ -81,9 +98,13 @@ static h_err* build_plugin(
 h_err* h_build_plugins(char* rootdir, h_build_outfiles outfiles, h_conf* conf)
 {
 	char* pluginsdir = h_util_path_join(rootdir, H_FILE_PLUGINS);
-	char* outpluginsdir = h_util_path_join(
+	char* outpluginsdirphp = h_util_path_join(
 		rootdir,
 		H_FILE_OUTPUT "/" H_FILE_OUT_META "/" H_FILE_OUT_PHP
+	);
+	char* outpluginsdirmisc = h_util_path_join(
+		rootdir,
+		H_FILE_OUTPUT "/" H_FILE_OUT_META "/" H_FILE_OUT_MISC
 	);
 
 	//Check status of rootdir/plugins, returning if it doesn't exist
@@ -95,9 +116,11 @@ h_err* h_build_plugins(char* rootdir, h_build_outfiles outfiles, h_conf* conf)
 			return h_err_from_errno(err, pluginsdir);
 	}
 
-	//Create rootdir/public/_/plugins if it doesn't exist
-	if (mkdir(outpluginsdir, 0777) == -1 && errno != EEXIST)
-		return h_err_from_errno(errno, outpluginsdir);
+	//Create dirs if they don't exist
+	if (mkdir(outpluginsdirphp, 0777) == -1 && errno != EEXIST)
+		return h_err_from_errno(errno, outpluginsdirphp);
+	if (mkdir(outpluginsdirmisc, 0777) == -1 && errno != EEXIST)
+		return h_err_from_errno(errno, outpluginsdirmisc);
 
 	//Loop through plugins, building them
 	struct dirent** namelist;
@@ -110,15 +133,17 @@ h_err* h_build_plugins(char* rootdir, h_build_outfiles outfiles, h_conf* conf)
 			continue;
 
 		char* dirpath = h_util_path_join(pluginsdir, ent->d_name);
-		char* outdir = h_util_path_join(outpluginsdir, ent->d_name);
+		char* outdirphp = h_util_path_join(outpluginsdirphp, ent->d_name);
+		char* outdirmisc = h_util_path_join(outpluginsdirmisc, ent->d_name);
 
 		h_err* err;
-		err = build_plugin(dirpath, outdir, outfiles, conf);
+		err = build_plugin(dirpath, outdirphp, outdirmisc, outfiles, conf);
 		if (err)
 			return err;
 
 		free(dirpath);
-		free(outdir);
+		free(outdirphp);
+		free(outdirmisc);
 		free(ent);
 	}
 	free(namelist);
