@@ -1,0 +1,26 @@
+# Make HTML files from markdown
+# Will only convert .md files
+HTMLDIR?=input/
+MDDIR?=raw/
+
+# Verbosity
+V?=0
+
+MARK:=@cmark
+
+ifneq ($(V), 0)
+	MARK:=cmark
+endif
+
+MDS:=$(wildcard $(MDDIR)*.md)
+HTMLS:=$(patsubst %.md,%.html,$(MDS))
+
+$(HTMLDIR)%.html: $(MDDIR)%.md
+	$(MARK) < "$<" > "$@"
+
+all: $(HTMLS)
+
+clean:
+	@rm -rf $(HTMLDIR)
+
+.PHONY: clean all

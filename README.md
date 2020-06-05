@@ -54,4 +54,7 @@ build "raw" "input"
 housecat .
 ```
 
+The `MakeHTML` file is a sample Makefile that converts markdown in `raw/` to html
+in `input/`.
+
 [cmark](https://github.com/jgm/cmark/tree/master/man) is the reference implementation of CommonMark, a standardized flavour of markdown. Using any other implementation of markdown, or any other markup language, is as simple as slightly modifying that script.
