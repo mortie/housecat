@@ -1,0 +1,8 @@
+# Setting up coding style such as tabs and using unix end lines
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = false
+indent_style = tab
