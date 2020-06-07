@@ -68,7 +68,7 @@ char* h_util_str_join(char* s1, char* s2)
 	return str;
 }
 
-char* h_util_file_read(char* path)
+char* h_util_file_read(const char* path)
 {
 	FILE* f = fopen(path, "r");
 

@@ -3,6 +3,11 @@
 
 #include "err.h"
 
+#include <sys/stat.h>
+
+// Forward declarations
+struct h_rss_post;
+
 typedef struct h_post
 {
 	char* _fstr;
@@ -12,6 +17,8 @@ typedef struct h_post
 	char* path;
 	int depth;
 	int isdraft;
+	char* rss;
+	struct h_rss_post* rss_metadata;
 } h_post;
 
 //Initiate a post from file
