@@ -409,18 +409,92 @@ h_err* h_rss_init_channel(h_section* section, const h_conf* conf, int recurse)
 	{
 		APPEND(builder, "\t<pubDate>")
 		// Conforming to https://www.ietf.org/rfc/rfc822.txt , section 5
-		// (if local settings are right)
-		tzset();
+		// Not using strftime for most things since it depends on locale, which
+		// may not be compliant with weekday/month
 		struct tm* ltime = localtime(&ts.tv_sec);
 		char timebuffer[64];
+		memset(&timebuffer[0], 0, sizeof(timebuffer) / sizeof(timebuffer[0]));
+
+		switch (ltime->tm_wday)
+		{
+		case 0:
+			strcpy(&timebuffer[0], "Sun, ");
+			break;
+		case 1:
+			strcpy(&timebuffer[0], "Mon, ");
+			break;
+		case 2:
+			strcpy(&timebuffer[0], "Tue, ");
+			break;
+		case 3:
+			strcpy(&timebuffer[0], "Wed, ");
+			break;
+		case 4:
+			strcpy(&timebuffer[0], "Thu, ");
+			break;
+		case 5:
+			strcpy(&timebuffer[0], "Fri, ");
+			break;
+		default:
+			strcpy(&timebuffer[0], "Sat, ");
+			break;
+		}
+
+		// Don't need snprintf here since buffer size is 64 - 5 (for weekday) = 59
+		// and the most this can print out is 13 bytes
+		sprintf(&timebuffer[5], "%02d ", ltime->tm_mday);
+		switch (ltime->tm_mon)
+		{
+		case 0:
+			strcat(timebuffer, "Jan ");
+			break;
+		case 1:
+			strcat(timebuffer, "Feb ");
+			break;
+		case 2:
+			strcat(timebuffer, "Mar ");
+			break;
+		case 3:
+			strcat(timebuffer, "Apr ");
+			break;
+		case 4:
+			strcat(timebuffer, "May ");
+			break;
+		case 5:
+			strcat(timebuffer, "Jun ");
+			break;
+		case 6:
+			strcat(timebuffer, "Jul ");
+			break;
+		case 7:
+			strcat(timebuffer, "Aug ");
+			break;
+		case 8:
+			strcat(timebuffer, "Sep ");
+			break;
+		case 9:
+			strcat(timebuffer, "Oct ");
+			break;
+		case 10:
+			strcat(timebuffer, "Nov ");
+			break;
+		case 11:
+			strcat(timebuffer, "Dec ");
+			break;
+		}
+
+		// Absolute maximum for this is 5 + 13 + 4 = 22, leaving 41 bytes for strftime
+		// and strftime will use a maximum of 19 bytes (if timezone starts with +/-)
+		const size_t buffer_length = strlen(timebuffer);
+
 		strftime(
-			&timebuffer[0],
-			sizeof(timebuffer) / sizeof(timebuffer[0]),
-			"%a, %d %b %Y %H:%M:%S %Z",
+			&timebuffer[buffer_length],
+			sizeof(timebuffer) / sizeof(timebuffer[0]) - 13,
+			"%Y %H:%M:%S %z",
 			ltime
 		);
 
-		APPEND(builder, &timebuffer[0])
+		APPEND(builder, timebuffer)
 		APPEND(builder, "</pubDate>\n")
 	}
 
