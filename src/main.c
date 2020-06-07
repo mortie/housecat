@@ -108,9 +108,12 @@ h_err* build(char* path)
 
 
 	// Deal with rss
-	err = h_rss_build(root, conf, outpath);
-	if (err)
-		return err;
+	if (conf->rss)
+	{
+		err = h_rss_build(root, conf, outpath);
+		if (err)
+			return err;
+	}
 
 	//Deal with meta things
 
