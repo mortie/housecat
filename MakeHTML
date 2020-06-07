@@ -13,17 +13,21 @@ ifneq ($(V), 0)
 	CMDPRE:=
 endif
 
-MDS:=$(wildcard $(MDDIR)*.md)
-HTMLS:=$(patsubst %.md,%.html,$(MDS))
-CONFS:=$(wildcard $(MDDIR)*.conf)
+MDS:=$(shell find $(MDDIR) -type f -name "*.md")
+HTMLS:=$(patsubst $(MDDIR)%.md,$(HTMLDIR)%.html,$(MDS))
+CONFS:=$(shell find $(MDDIR) -type f -name "*.conf")
 FINALCONFS:=$(patsubst $(MDDIR)%.conf,$(HTMLDIR)%.conf,$(CONFS))
 
+all: $(HTMLS) $(FINALCONFS)
+
 $(HTMLDIR)%.html: $(MDDIR)%.md
-	$(CMDPRE)sed -ne '/^#/,$$ p' | $(MARK) > "$@".tmp
-	$(CMDPRE)sed '/^#/Q' | cat - "$@".tmp > "$@"
+	$(CMDPRE)mkdir -p "$(dir $@)"
+	$(CMDPRE)sed -ne '/^#/,$$ p' "$<" | $(MARK) > "$@".tmp
+	$(CMDPRE)sed '/^#/Q' "$<" | cat - "$@".tmp > "$@"
 	$(CMDPRE)rm "$@".tmp
 
 $(HTMLDIR)%.conf: $(MDDIR)%.conf
+	$(CMDPRE)mkdir -p "$(dir $@)"
 	$(CMDPRE)cp "$<" > "$@"
 
 all: $(HTMLS) $(FINALCONFS)
