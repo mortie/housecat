@@ -104,9 +104,22 @@ h_err* build(char* path)
 
 
 	// Deal with rss
+	// Add "public" to the end of root directory if not already there
+	// housecat seems to work with the root having the public or not, but
+	// rss paths assume that it has the public
+	// Do this by checking if last 7 characters are "/public"
+	char* real_root = conf->root;
+	const size_t root_len = strlen(conf->root);
+	if (root_len < strlen("/public") || !h_util_streq(&conf->root[root_len - 7], "/public"))
+		conf->root = h_util_path_join(conf->root, "public");
 	err = h_rss_build(root, conf);
 	if (err)
 		return err;
+	if (conf->root != real_root)
+	{
+		free(conf->root);
+		conf->root = real_root;
+	}
 
 	//Deal with meta things
 
