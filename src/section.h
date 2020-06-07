@@ -4,6 +4,9 @@
 #include "err.h"
 #include "post.h"
 
+// Forward declarations
+struct h_rss_section;
+
 typedef struct h_section
 {
 	char* title;
@@ -20,6 +23,10 @@ typedef struct h_section
 
 	char* path;
 	int depth;
+
+	char* rpath;
+	struct h_rss_section* rss_metadata;
+	char* rss;
 } h_section;
 
 //Initiate a section from directory

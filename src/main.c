@@ -6,6 +6,7 @@
 #include "util.h"
 #include "conf.h"
 #include "strs.h"
+#include "rss.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -29,6 +30,9 @@ h_err* build(char* path)
 	err = h_section_init_from_dir(root, inpath);
 	if (err)
 		return err;
+	err = h_rss_configure(root, NULL);
+	if (err)
+		return err;
 
 	if (mkdir(inpath, 0777) == -1 && errno != EEXIST)
 		return h_err_from_errno(errno, inpath);
@@ -40,8 +44,13 @@ h_err* build(char* path)
 	char* conf_path = h_util_path_join(path, H_FILE_CONF);
 	char* conf_str = h_util_file_read(conf_path);
 	if (conf_str == NULL) return h_err_from_errno(errno, conf_path);
+	h_conf* conf = calloc(1, sizeof(*conf));
+  conf->use_guid = 1;
+	if (conf == NULL) return h_err_from_errno(errno, conf_path);
 	free(conf_path);
-	h_conf* conf = h_conf_parse(conf_str, strlen(conf_str));
+	err = h_conf_parse(conf_str, strlen(conf_str)+1, (void *)conf, h_conf_build);
+	if (err)
+		return err;
 
 	//index template
 	char* index_path = h_util_path_join(path, H_FILE_THEME_HTML "/index.html");
@@ -92,6 +101,25 @@ h_err* build(char* path)
 	err = h_build(root, outpath, strs, conf);
 	if (err)
 		return err;
+
+
+	// Deal with rss
+	// Add "public" to the end of root directory if not already there
+	// housecat seems to work with the root having the public or not, but
+	// rss paths assume that it has the public
+	// Do this by checking if last 7 characters are "/public"
+	char* real_root = conf->root;
+	const size_t root_len = strlen(conf->root);
+	if (root_len < strlen("/public") || !h_util_streq(&conf->root[root_len - 7], "/public"))
+		conf->root = h_util_path_join(conf->root, "public");
+	err = h_rss_build(root, conf);
+	if (err)
+		return err;
+	if (conf->root != real_root)
+	{
+		free(conf->root);
+		conf->root = real_root;
+	}
 
 	//Deal with meta things
 

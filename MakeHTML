@@ -1,0 +1,34 @@
+# Make HTML files from markdown
+# Will only convert .md files
+HTMLDIR?=input/
+MDDIR?=raw/
+
+# Verbosity
+V?=0
+
+MARK:=cmark
+CMDPRE:=@
+
+ifneq ($(V), 0)
+	CMDPRE:=
+endif
+
+MDS:=$(wildcard $(MDDIR)*.md)
+HTMLS:=$(patsubst %.md,%.html,$(MDS))
+CONFS:=$(wildcard $(MDDIR)*.conf)
+FINALCONFS:=$(patsubst $(MDDIR)%.conf,$(HTMLDIR)%.conf,$(CONFS))
+
+$(HTMLDIR)%.html: $(MDDIR)%.md
+	$(CMDPRE)sed -ne '/^#/,$$ p' | $(MARK) > "$@".tmp
+	$(CMDPRE)sed '/^#/Q' | cat - "$@".tmp > "$@"
+	$(CMDPRE)rm "$@".tmp
+
+$(HTMLDIR)%.conf: $(MDDIR)%.conf
+	$(CMDPRE)cp "$<" > "$@"
+
+all: $(HTMLS) $(FINALCONFS)
+
+clean:
+	@rm -rf $(HTMLDIR)
+
+.PHONY: clean all

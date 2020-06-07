@@ -53,7 +53,7 @@ static char* str_from_errno(int err)
 	}
 }
 
-h_err* _h_err_create(h_err_type type, char* msg, int line, char* file)
+h_err* _h_err_create(h_err_type type, const char* msg, int line, char* file)
 {
 	h_err* err = malloc(sizeof(h_err));
 	if (err == NULL) {
@@ -70,7 +70,7 @@ h_err* _h_err_create(h_err_type type, char* msg, int line, char* file)
 	return err;
 }
 
-h_err* _h_err_from_errno(int errno_err, char* msg, int line, char* file)
+h_err* _h_err_from_errno(int errno_err, const char* msg, int line, char* file)
 {
 	h_err* err = _h_err_create(H_ERR_ERRNO, msg, line, file);
 	err->errno_err = errno_err;

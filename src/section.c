@@ -1,3 +1,4 @@
+#include "rss.h"
 #include "section.h"
 #include "util.h"
 
@@ -29,6 +30,8 @@ static h_err* init_from_dir(h_section* section, char* path, char* spath, int dep
 	section->numdrafts = 0;
 	section->subs = NULL;
 	section->numsubs = 0;
+	section->rpath = malloc(strlen(path) + 1);
+	strcpy(section->rpath, path);
 
 	struct dirent** namelist;
 	int n;
@@ -52,6 +55,9 @@ static h_err* init_from_dir(h_section* section, char* path, char* spath, int dep
 		//If entry is a file, add it to either posts or drafts
 		if (ent->d_type == DT_REG)
 		{
+			if (strcmp(ent->d_name, "rss.conf") == 0)
+				continue; // Don't read rss configu
+
 			h_post* post = malloc(sizeof(h_post));
 			if (post == NULL)
 				return h_err_create(H_ERR_ALLOC, NULL);
@@ -61,7 +67,7 @@ static h_err* init_from_dir(h_section* section, char* path, char* spath, int dep
 				return h_err_create(H_ERR_ALLOC, NULL);
 
 			h_err* err = NULL;
-			err = h_post_init_from_file(post, p, spath, depth + 1);
+			err = h_post_init_from_file(post, p, spath, depth);
 			if (err)
 				return err;
 			free(p);
@@ -128,6 +134,8 @@ static h_err* init_from_dir(h_section* section, char* path, char* spath, int dep
 	if (chars <= 0) {
 		section->slug = NULL;
 		section->title = NULL;
+		section->path = spath;
+		section->depth = depth;
 		return NULL;
 	}
 

@@ -2,6 +2,7 @@
 #include "file.h"
 #include "template.h"
 #include "util.h"
+#include "rss.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -32,6 +33,16 @@ static h_err* build_post(
 		return err;
 
 	fclose(file);
+
+	if (conf->rss && !(post->isdraft && !conf->rss_drafts))
+	{
+		err = h_rss_init_item(post, conf);
+		if (err)
+			return err;
+	}
+	else
+		post->rss = NULL;
+
 	free(dpath);
 
 	return NULL;
