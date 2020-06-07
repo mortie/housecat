@@ -90,7 +90,7 @@ static void print_start(FILE *f)
 	fputs("<rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">\n", f);
 }
 
-static h_err* build_feed_global(h_section* root, const h_conf* conf)
+static h_err* build_feed_global(h_section* root, const h_conf* conf, const char* path)
 {
 	if (root == NULL || conf == NULL)
 		return NULL;
@@ -98,9 +98,9 @@ static h_err* build_feed_global(h_section* root, const h_conf* conf)
 	if (err)
 		return err;
 
-	char* feed_path = h_util_path_join(conf->root, "feed.rss");
+	char* feed_path = h_util_path_join(path, "feed.rss");
 	if (feed_path == NULL)
-		return h_err_from_errno(errno, conf->root);
+		return h_err_from_errno(errno, path);
 
 	FILE* f = fopen(feed_path, "w");
 	if (f == NULL)
@@ -114,7 +114,7 @@ static h_err* build_feed_global(h_section* root, const h_conf* conf)
 	return NULL;
 }
 
-static h_err* build_feed_section(h_section* root, const h_conf* conf)
+static h_err* build_feed_section(h_section* root, const h_conf* conf, const char* path)
 {
 	if (!root || !conf)
 		return NULL;
@@ -133,9 +133,9 @@ static h_err* build_feed_section(h_section* root, const h_conf* conf)
 		return err;
 
 	// Print out to the appropiate files
-	char* feed_path = h_util_path_join(conf->root, "feed.rss");
+	char* feed_path = h_util_path_join(path, "feed.rss");
 	if (feed_path == NULL)
-		return h_err_from_errno(errno, conf->root);
+		return h_err_from_errno(errno, path);
 	FILE* f = fopen(feed_path, "w");
 	if (f == NULL)
 		return h_err_from_errno(errno, feed_path);
@@ -148,9 +148,9 @@ static h_err* build_feed_section(h_section* root, const h_conf* conf)
 
 	for (int i=0; i < root->numsubs; ++i)
 	{
-		char* section_path = h_util_path_join(conf->root, root->subs[i]->path);
+		char* section_path = h_util_path_join(path, root->subs[i]->path);
 		if (section_path == NULL)
-			return h_err_from_errno(errno, conf->root);
+			return h_err_from_errno(errno, path);
 		feed_path = h_util_path_join(section_path, "feed.rss");
 		if (feed_path == NULL)
 			return h_err_from_errno(errno, section_path);
@@ -173,7 +173,7 @@ static h_err* build_feed_section(h_section* root, const h_conf* conf)
 // Recursively go through sections making channels, not
 // recursing on the channel creation so each channel only has
 // its top level posts
-static h_err* rss_channel_recurse(h_section* section, const h_conf* conf)
+static h_err* rss_channel_recurse(h_section* section, const h_conf* conf, const char* path)
 {
 	if (!section || !conf)
 		return NULL;
@@ -184,14 +184,14 @@ static h_err* rss_channel_recurse(h_section* section, const h_conf* conf)
 
 	for (int i=0; i < section->numsubs; ++i)
 	{
-		err = rss_channel_recurse(section->subs[i], conf);
+		err = rss_channel_recurse(section->subs[i], conf, path);
 		if (err)
 			return err;
 	}
 
-	char* section_path = h_util_path_join(conf->root, section->path);
+	char* section_path = h_util_path_join(path, section->path);
 	if (section_path == NULL)
-		return h_err_from_errno(errno, conf->root);
+		return h_err_from_errno(errno, path);
 	char* feed_path = h_util_path_join(section_path, "feed.rss");
 	if (feed_path == NULL)
 		return h_err_from_errno(errno, section_path);
@@ -210,12 +210,12 @@ static h_err* rss_channel_recurse(h_section* section, const h_conf* conf)
 	return NULL;
 }
 
-static h_err* build_feed_subsection(h_section* root, const h_conf* conf)
+static h_err* build_feed_subsection(h_section* root, const h_conf* conf, const char* path)
 {
 	if (!root || !conf)
 		return NULL;
 
-	h_err* err = rss_channel_recurse(root, conf);
+	h_err* err = rss_channel_recurse(root, conf, path);
 	if (err)
 		return err;
 
@@ -258,16 +258,16 @@ h_err* h_rss_aggregate(h_section* section)
 	return NULL;
 }
 
-h_err* h_rss_build(h_section* root, const h_conf* conf)
+h_err* h_rss_build(h_section* root, const h_conf* conf, const char* path)
 {
 	switch (conf->rss_level)
 	{
 	case H_RSS_SUBSECTION:
-		return build_feed_subsection(root, conf);
+		return build_feed_subsection(root, conf, path);
 	case H_RSS_SECTION:
-		return build_feed_section(root, conf);
+		return build_feed_section(root, conf, path);
 	default:
-		return build_feed_global(root, conf);
+		return build_feed_global(root, conf, path);
 	}
 }
 

@@ -30,8 +30,6 @@ $(HTMLDIR)%.conf: $(MDDIR)%.conf
 	$(CMDPRE)mkdir -p "$(dir $@)"
 	$(CMDPRE)cp "$<" > "$@"
 
-all: $(HTMLS) $(FINALCONFS)
-
 clean:
 	@rm -rf $(HTMLDIR)
 

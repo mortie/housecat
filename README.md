@@ -84,9 +84,9 @@ The options that are required in `conf` are:
 * `title` A string, the main title of the site
 * `logo` A boolean (`true` or `false`), whether or not the site has a logo
 * `posts_per_page` An integer, the number of posts per page on the index pages
-* `root` the absolute path to directory (e.g. the root would be
-	`/srv/http` if you're building your site by doing
-	`housecat /srv/http`). Housecat will make the `public/` directory in `root`
+* `root` a string, the root path of the site in the url. For example, if the
+	site is located at `http://example.com/housecat-site`, `root` would be
+	`/housecat-site`. Use `/` if the site is directly on your url and not in a subdirectory.
 
 The optional options in `conf` are:
 * `rss` A boolean (`true` or `false`), defaults to `false`. If this option is
