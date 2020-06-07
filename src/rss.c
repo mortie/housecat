@@ -84,20 +84,10 @@ static void print_end(FILE *f)
 	fputs("</rss>\n", f);
 }
 
-static void print_recursive(FILE* f, h_section* section)
-{
-	if (!f || !section)
-		return;
-
-	print_channel(f, section);
-	for (int i=0; i < section->numsubs; ++i)
-		print_recursive(f, section->subs[i]);
-}
-
 static void print_start(FILE *f)
 {
 	fputs("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n", f);
-	fputs("<rss version=\"2.0\">\n", f);
+	fputs("<rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">\n", f);
 }
 
 static h_err* build_feed_global(h_section* root, const h_conf* conf)
@@ -143,59 +133,38 @@ static h_err* build_feed_section(h_section* root, const h_conf* conf)
 		return err;
 
 	// Print out to the appropiate files
-	if (conf->combine_feeds)
-	{
-		char* feed_path = h_util_path_join(conf->root, "feed.rss");
-		if (feed_path == NULL)
-			return h_err_from_errno(errno, conf->root);
+	char* feed_path = h_util_path_join(conf->root, "feed.rss");
+	if (feed_path == NULL)
+		return h_err_from_errno(errno, conf->root);
+	FILE* f = fopen(feed_path, "w");
+	if (f == NULL)
+		return h_err_from_errno(errno, feed_path);
+	free(feed_path);
 
-		FILE* f = fopen(feed_path, "w");
+	print_start(f);
+	print_channel(f, root);
+	print_end(f);
+	fclose(f);
+
+	for (int i=0; i < root->numsubs; ++i)
+	{
+		char* section_path = h_util_path_join(conf->root, root->subs[i]->path);
+		if (section_path == NULL)
+			return h_err_from_errno(errno, conf->root);
+		feed_path = h_util_path_join(section_path, "feed.rss");
+		if (feed_path == NULL)
+			return h_err_from_errno(errno, section_path);
+		free(section_path);
+
+		f = fopen(feed_path, "w");
 		if (f == NULL)
 			return h_err_from_errno(errno, feed_path);
 		free(feed_path);
 
 		print_start(f);
-		print_channel(f, root);
-		for (int i=0; i < root->numsubs; ++i)
-			print_channel(f, root->subs[i]);
+		print_channel(f, root->subs[i]);
 		print_end(f);
 		fclose(f);
-	}
-	else
-	{
-		char* feed_path = h_util_path_join(conf->root, "feed.rss");
-		if (feed_path == NULL)
-			return h_err_from_errno(errno, conf->root);
-		FILE* f = fopen(feed_path, "w");
-		if (f == NULL)
-			return h_err_from_errno(errno, feed_path);
-		free(feed_path);
-
-		print_start(f);
-		print_channel(f, root);
-		print_end(f);
-		fclose(f);
-
-		for (int i=0; i < root->numsubs; ++i)
-		{
-			char* section_path = h_util_path_join(conf->root, root->subs[i]->path);
-			if (section_path == NULL)
-				return h_err_from_errno(errno, conf->root);
-			feed_path = h_util_path_join(section_path, "feed.rss");
-			if (feed_path == NULL)
-				return h_err_from_errno(errno, section_path);
-			free(section_path);
-
-			f = fopen(feed_path, "w");
-			if (f == NULL)
-				return h_err_from_errno(errno, feed_path);
-			free(feed_path);
-
-			print_start(f);
-			print_channel(f, root->subs[i]);
-			print_end(f);
-			fclose(f);
-		}
 	}
 
 	return NULL;
@@ -204,7 +173,7 @@ static h_err* build_feed_section(h_section* root, const h_conf* conf)
 // Recursively go through sections making channels, not
 // recursing on the channel creation so each channel only has
 // its top level posts
-static h_err* rss_channel_recurse(h_section* section, const h_conf* conf, int write)
+static h_err* rss_channel_recurse(h_section* section, const h_conf* conf)
 {
 	if (!section || !conf)
 		return NULL;
@@ -215,31 +184,28 @@ static h_err* rss_channel_recurse(h_section* section, const h_conf* conf, int wr
 
 	for (int i=0; i < section->numsubs; ++i)
 	{
-		err = rss_channel_recurse(section->subs[i], conf, write);
+		err = rss_channel_recurse(section->subs[i], conf);
 		if (err)
 			return err;
 	}
 
-	if (write)
-	{
-		char* section_path = h_util_path_join(conf->root, section->path);
-		if (section_path == NULL)
-			return h_err_from_errno(errno, conf->root);
-		char* feed_path = h_util_path_join(section_path, "feed.rss");
-		if (feed_path == NULL)
-			return h_err_from_errno(errno, section_path);
-		free(section_path);
+	char* section_path = h_util_path_join(conf->root, section->path);
+	if (section_path == NULL)
+		return h_err_from_errno(errno, conf->root);
+	char* feed_path = h_util_path_join(section_path, "feed.rss");
+	if (feed_path == NULL)
+		return h_err_from_errno(errno, section_path);
+	free(section_path);
 
-		FILE* f = fopen(feed_path, "w");
-		if (f == NULL)
-			return h_err_from_errno(errno, feed_path);
-		free(feed_path);
+	FILE* f = fopen(feed_path, "w");
+	if (f == NULL)
+		return h_err_from_errno(errno, feed_path);
+	free(feed_path);
 
-		print_start(f);
-		print_channel(f, section);
-		print_end(f);
-		fclose(f);
-	}
+	print_start(f);
+	print_channel(f, section);
+	print_end(f);
+	fclose(f);
 
 	return NULL;
 }
@@ -249,26 +215,9 @@ static h_err* build_feed_subsection(h_section* root, const h_conf* conf)
 	if (!root || !conf)
 		return NULL;
 
-	h_err* err = rss_channel_recurse(root, conf, !conf->combine_feeds);
+	h_err* err = rss_channel_recurse(root, conf);
 	if (err)
 		return err;
-
-	if (conf->combine_feeds)
-	{
-		char* feed_path = h_util_path_join(conf->root, "feed.rss");
-		if (feed_path == NULL)
-			return h_err_from_errno(errno, conf->root);
-
-		FILE* f = fopen(feed_path, "w");
-		if (f == NULL)
-			return h_err_from_errno(errno, feed_path);
-		free(feed_path);
-
-		print_start(f);
-		print_recursive(f, root);
-		print_end(f);
-		fclose(f);
-	}
 
 	return NULL;
 }
@@ -397,7 +346,20 @@ h_err* h_rss_init_channel(h_section* section, const h_conf* conf, int recurse)
 	APPEND(builder, "</link>\n\t<description>")
 	if (section->rss_metadata->description != NULL)
 		APPEND(builder, section->rss_metadata->description)
-	APPEND(builder, "</description>\n")
+
+	APPEND(builder, "</description>\n\t<atom:link href=\"")
+
+	if (conf->url != NULL)
+	{
+		char* urlpath = h_util_path_join(conf->url, section->path);
+		char* rsspath = h_util_path_join(urlpath, "feed.rss");
+		APPEND(builder, rsspath)
+		free(urlpath);
+		free(rsspath);
+	}
+	else
+		APPEND(builder, section->path)
+	APPEND(builder, "\" rel=\"self\" type=\"application/rss+xml\" />\n")
 
 	// optional tags
 	if (section->rss_metadata->language != NULL)
@@ -454,7 +416,7 @@ h_err* h_rss_init_channel(h_section* section, const h_conf* conf, int recurse)
 		strftime(
 			&timebuffer[0],
 			sizeof(timebuffer) / sizeof(timebuffer[0]),
-			"%a, %e %B %y %H:%M:%S %Z",
+			"%a, %d %b %Y %H:%M:%S %Z",
 			ltime
 		);
 

@@ -60,13 +60,6 @@ void h_conf_build(void* c, char* key, char* val)
 		else
 			conf->rss_level = H_RSS_GLOBAL;
 	}
-	else if (h_util_streq(key, "combine_feeds"))
-	{
-		if (h_util_streq(val, "true"))
-			conf->combine_feeds = 1;
-		else
-			conf->combine_feeds = 0;
-	}
 	else if (h_util_streq(key, "url"))
 	{
 		if (val[0] == '\0')

@@ -3,7 +3,8 @@ logo: false
 posts_per_page: 5
 root: /
 rss: true
-rss_level: section
+rss_level: subsection
 rss_drafts: true
 url: http://www.example.com
-combine_feeds: false
+use_guid: true
+use_pubdate: true

@@ -123,23 +123,6 @@ The optional options in `conf` are:
 
 	Every post is in exactly one channel.
 
-* `combine_feeds` boolean (`true` or `false`), defaults to `false`.
-	If this option is true, then every channel will be put into a single
-	file, `pubilc/feed.rss`. If this option is false, then
-	every channel will be put into its own `feed.rss`.
-
-	* For `rss_level: global`, this option is meaningless as
-	there is only one channel and it will always be in `public/feed.rss`
-
-	* For `rss_level: section`, setting `combine_feeds: false`
-		will create a `public/feed.rss` for the posts directly
-		under `input/` and a `public/section/feed.rss` for
-		every top-level directory under `input/`
-
-	* For `rss_level: subsection`, setting `combine_feeds; false`
-		will create a `feed.rss` in every subdirectory in `public`,
-		including `public/feed.rss`
-
 * `use_guid` A boolean (`true` or `false`), defaults to `true`.
 	If this option is true, Housecat will generate a `guid`
 	tag for every item with the `guid` being a link to the post
@@ -220,7 +203,7 @@ The available options for posts are:
 
 * `date` a string, the date the post was made. To be completely
 	conformant with rss standards, dates should follow
-	[RFC822](https://www.ietf.org/rfc/rfc822.txt).
+	[RFC-822](https://www.ietf.org/rfc/rfc822.txt).
 
 Furthermore, posts can have an unlimited number of
 `category` settings. Every specified category will be
