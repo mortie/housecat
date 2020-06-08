@@ -258,6 +258,45 @@ h_err* h_rss_aggregate(h_section* section)
 	return NULL;
 }
 
+void h_rss_arg(h_section* section, h_template_args* args, const h_conf* conf)
+{
+	if (conf->rss)
+	{
+		char* feed = NULL;
+		switch(conf->rss_level)
+		{
+		case H_RSS_SUBSECTION:
+			feed = h_util_path_join(section->path, "feed.rss");
+			h_template_args_append(args, "feed", feed);
+			break;
+		case H_RSS_SECTION:
+			// ; is needed so case statement is satisfied
+			;const size_t path_len = strlen(section->path);
+			size_t first_slash;
+			for (first_slash = 0; first_slash < path_len && section->path[first_slash] != '/'; ++first_slash);
+			if (path_len == 0)
+			{
+				h_template_args_append(args, "feed", "feed.rss");
+			}
+			else if (first_slash == path_len)
+			{
+				feed = h_util_path_join(section->path, "feed.rss");
+				h_template_args_append(args, "feed", feed);
+			}
+			else
+			{
+				section->path[first_slash] = '\0';
+				feed = h_util_path_join(section->path, "feed.rss");
+				section->path[first_slash] = '/';
+				h_template_args_append(args, "feed", feed);
+			}
+			break;
+		default:
+			h_template_args_append(args, "feed", "feed.rss");
+		}
+	}
+}
+
 h_err* h_rss_build(h_section* root, const h_conf* conf, const char* path)
 {
 	switch (conf->rss_level)

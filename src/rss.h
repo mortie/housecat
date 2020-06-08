@@ -1,10 +1,11 @@
 #ifndef H_RSS_H
 #define H_RSS_H
 
+#include "conf.h"
 #include "err.h"
 #include "post.h"
 #include "section.h"
-#include "conf.h"
+#include "template.h"
 
 typedef struct h_rss_section
 {
@@ -29,6 +30,9 @@ typedef struct h_rss_post
 // Put all posts under this entire section, including subsections,
 // into the section's rss string
 h_err* h_rss_aggregate(h_section* section);
+
+// Build the arg template {{feed}}
+void h_rss_arg(h_section* section, h_template_args* args, const h_conf* conf);
 
 // Build the actual rss feeds based on the configuration
 h_err* h_rss_build(h_section* root, const h_conf* conf, const char* path);
