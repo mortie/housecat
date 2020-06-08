@@ -6,7 +6,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-char* h_util_path_join(char* p1, char* p2)
+char* h_util_path_join(const char* p1, const char* p2)
 {
 	if (p1 == NULL)
 		return NULL;
@@ -23,7 +23,7 @@ char* h_util_path_join(char* p1, char* p2)
 	int len2 = strlen(p2);
 
 	//Don't add '/' between the strings if it's already there
-	if (p1[len1 - 1] == '/')
+	if (p1[len1 - 1] == '/' || p2[0] == '/')
 	{
 		int len = len1 + len2 + 1;
 		char* path = malloc(len);

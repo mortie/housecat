@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 char* h_util_str_join(char* s1, char* s2);
-char* h_util_path_join(char* p1, char* p2);
+char* h_util_path_join(const char* p1, const char* p2);
 char* h_util_file_read(const char* path);
 int h_util_file_err(char* path);
 void h_util_file_copy(FILE* f1, FILE* f2);

@@ -21,6 +21,7 @@ h_err* build(char* path)
 	if (h_util_file_err(path))
 		return h_err_from_errno(errno, path);
 
+
 	char* inpath = h_util_path_join(path, H_FILE_INPUT);
 	char* outpath = h_util_path_join(path, H_FILE_OUTPUT);
 	if (inpath == NULL || outpath == NULL)
@@ -51,6 +52,9 @@ h_err* build(char* path)
 	err = h_conf_parse(conf_str, strlen(conf_str)+1, (void *)conf, h_conf_build);
 	if (err)
 		return err;
+  // append root to the end of the url so links actually work
+  if (conf->url != NULL && conf->root != NULL && conf->root[0] != '\0')
+    conf->url = h_util_path_join(conf->url, conf->root);
 
 	//index template
 	char* index_path = h_util_path_join(path, H_FILE_THEME_HTML "/index.html");
@@ -104,21 +108,11 @@ h_err* build(char* path)
 
 
 	// Deal with rss
-	// Add "public" to the end of root directory if not already there
-	// housecat seems to work with the root having the public or not, but
-	// rss paths assume that it has the public
-	// Do this by checking if last 7 characters are "/public"
-	char* real_root = conf->root;
-	const size_t root_len = strlen(conf->root);
-	if (root_len < strlen("/public") || !h_util_streq(&conf->root[root_len - 7], "/public"))
-		conf->root = h_util_path_join(conf->root, "public");
-	err = h_rss_build(root, conf);
-	if (err)
-		return err;
-	if (conf->root != real_root)
+	if (conf->rss)
 	{
-		free(conf->root);
-		conf->root = real_root;
+		err = h_rss_build(root, conf, outpath);
+		if (err)
+			return err;
 	}
 
 	//Deal with meta things

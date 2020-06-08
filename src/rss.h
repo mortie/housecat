@@ -31,7 +31,7 @@ typedef struct h_rss_post
 h_err* h_rss_aggregate(h_section* section);
 
 // Build the actual rss feeds based on the configuration
-h_err* h_rss_build(h_section* root, const h_conf* conf);
+h_err* h_rss_build(h_section* root, const h_conf* conf, const char* path);
 
 // Read in channel configuration file recursively
 // Start with the root section and NULL inheritence

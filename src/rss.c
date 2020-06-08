@@ -90,7 +90,7 @@ static void print_start(FILE *f)
 	fputs("<rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">\n", f);
 }
 
-static h_err* build_feed_global(h_section* root, const h_conf* conf)
+static h_err* build_feed_global(h_section* root, const h_conf* conf, const char* path)
 {
 	if (root == NULL || conf == NULL)
 		return NULL;
@@ -98,9 +98,9 @@ static h_err* build_feed_global(h_section* root, const h_conf* conf)
 	if (err)
 		return err;
 
-	char* feed_path = h_util_path_join(conf->root, "feed.rss");
+	char* feed_path = h_util_path_join(path, "feed.rss");
 	if (feed_path == NULL)
-		return h_err_from_errno(errno, conf->root);
+		return h_err_from_errno(errno, path);
 
 	FILE* f = fopen(feed_path, "w");
 	if (f == NULL)
@@ -114,7 +114,7 @@ static h_err* build_feed_global(h_section* root, const h_conf* conf)
 	return NULL;
 }
 
-static h_err* build_feed_section(h_section* root, const h_conf* conf)
+static h_err* build_feed_section(h_section* root, const h_conf* conf, const char* path)
 {
 	if (!root || !conf)
 		return NULL;
@@ -133,9 +133,9 @@ static h_err* build_feed_section(h_section* root, const h_conf* conf)
 		return err;
 
 	// Print out to the appropiate files
-	char* feed_path = h_util_path_join(conf->root, "feed.rss");
+	char* feed_path = h_util_path_join(path, "feed.rss");
 	if (feed_path == NULL)
-		return h_err_from_errno(errno, conf->root);
+		return h_err_from_errno(errno, path);
 	FILE* f = fopen(feed_path, "w");
 	if (f == NULL)
 		return h_err_from_errno(errno, feed_path);
@@ -148,9 +148,9 @@ static h_err* build_feed_section(h_section* root, const h_conf* conf)
 
 	for (int i=0; i < root->numsubs; ++i)
 	{
-		char* section_path = h_util_path_join(conf->root, root->subs[i]->path);
+		char* section_path = h_util_path_join(path, root->subs[i]->path);
 		if (section_path == NULL)
-			return h_err_from_errno(errno, conf->root);
+			return h_err_from_errno(errno, path);
 		feed_path = h_util_path_join(section_path, "feed.rss");
 		if (feed_path == NULL)
 			return h_err_from_errno(errno, section_path);
@@ -173,7 +173,7 @@ static h_err* build_feed_section(h_section* root, const h_conf* conf)
 // Recursively go through sections making channels, not
 // recursing on the channel creation so each channel only has
 // its top level posts
-static h_err* rss_channel_recurse(h_section* section, const h_conf* conf)
+static h_err* rss_channel_recurse(h_section* section, const h_conf* conf, const char* path)
 {
 	if (!section || !conf)
 		return NULL;
@@ -184,14 +184,14 @@ static h_err* rss_channel_recurse(h_section* section, const h_conf* conf)
 
 	for (int i=0; i < section->numsubs; ++i)
 	{
-		err = rss_channel_recurse(section->subs[i], conf);
+		err = rss_channel_recurse(section->subs[i], conf, path);
 		if (err)
 			return err;
 	}
 
-	char* section_path = h_util_path_join(conf->root, section->path);
+	char* section_path = h_util_path_join(path, section->path);
 	if (section_path == NULL)
-		return h_err_from_errno(errno, conf->root);
+		return h_err_from_errno(errno, path);
 	char* feed_path = h_util_path_join(section_path, "feed.rss");
 	if (feed_path == NULL)
 		return h_err_from_errno(errno, section_path);
@@ -210,12 +210,12 @@ static h_err* rss_channel_recurse(h_section* section, const h_conf* conf)
 	return NULL;
 }
 
-static h_err* build_feed_subsection(h_section* root, const h_conf* conf)
+static h_err* build_feed_subsection(h_section* root, const h_conf* conf, const char* path)
 {
 	if (!root || !conf)
 		return NULL;
 
-	h_err* err = rss_channel_recurse(root, conf);
+	h_err* err = rss_channel_recurse(root, conf, path);
 	if (err)
 		return err;
 
@@ -258,16 +258,16 @@ h_err* h_rss_aggregate(h_section* section)
 	return NULL;
 }
 
-h_err* h_rss_build(h_section* root, const h_conf* conf)
+h_err* h_rss_build(h_section* root, const h_conf* conf, const char* path)
 {
 	switch (conf->rss_level)
 	{
 	case H_RSS_SUBSECTION:
-		return build_feed_subsection(root, conf);
+		return build_feed_subsection(root, conf, path);
 	case H_RSS_SECTION:
-		return build_feed_section(root, conf);
+		return build_feed_section(root, conf, path);
 	default:
-		return build_feed_global(root, conf);
+		return build_feed_global(root, conf, path);
 	}
 }
 
@@ -409,18 +409,92 @@ h_err* h_rss_init_channel(h_section* section, const h_conf* conf, int recurse)
 	{
 		APPEND(builder, "\t<pubDate>")
 		// Conforming to https://www.ietf.org/rfc/rfc822.txt , section 5
-		// (if local settings are right)
-		tzset();
+		// Not using strftime for most things since it depends on locale, which
+		// may not be compliant with weekday/month
 		struct tm* ltime = localtime(&ts.tv_sec);
 		char timebuffer[64];
+		memset(&timebuffer[0], 0, sizeof(timebuffer) / sizeof(timebuffer[0]));
+
+		switch (ltime->tm_wday)
+		{
+		case 0:
+			strcpy(&timebuffer[0], "Sun, ");
+			break;
+		case 1:
+			strcpy(&timebuffer[0], "Mon, ");
+			break;
+		case 2:
+			strcpy(&timebuffer[0], "Tue, ");
+			break;
+		case 3:
+			strcpy(&timebuffer[0], "Wed, ");
+			break;
+		case 4:
+			strcpy(&timebuffer[0], "Thu, ");
+			break;
+		case 5:
+			strcpy(&timebuffer[0], "Fri, ");
+			break;
+		default:
+			strcpy(&timebuffer[0], "Sat, ");
+			break;
+		}
+
+		// Don't need snprintf here since buffer size is 64 - 5 (for weekday) = 59
+		// and the most this can print out is 13 bytes
+		sprintf(&timebuffer[5], "%02d ", ltime->tm_mday);
+		switch (ltime->tm_mon)
+		{
+		case 0:
+			strcat(timebuffer, "Jan ");
+			break;
+		case 1:
+			strcat(timebuffer, "Feb ");
+			break;
+		case 2:
+			strcat(timebuffer, "Mar ");
+			break;
+		case 3:
+			strcat(timebuffer, "Apr ");
+			break;
+		case 4:
+			strcat(timebuffer, "May ");
+			break;
+		case 5:
+			strcat(timebuffer, "Jun ");
+			break;
+		case 6:
+			strcat(timebuffer, "Jul ");
+			break;
+		case 7:
+			strcat(timebuffer, "Aug ");
+			break;
+		case 8:
+			strcat(timebuffer, "Sep ");
+			break;
+		case 9:
+			strcat(timebuffer, "Oct ");
+			break;
+		case 10:
+			strcat(timebuffer, "Nov ");
+			break;
+		case 11:
+			strcat(timebuffer, "Dec ");
+			break;
+		}
+
+		// Absolute maximum for this is 5 + 13 + 4 = 22, leaving 41 bytes for strftime
+		// and strftime will use a maximum of 19 bytes (if timezone starts with +/-)
+		const size_t buffer_length = strlen(timebuffer);
+
 		strftime(
-			&timebuffer[0],
-			sizeof(timebuffer) / sizeof(timebuffer[0]),
-			"%a, %d %b %Y %H:%M:%S %Z",
+			&timebuffer[buffer_length],
+			sizeof(timebuffer) / sizeof(timebuffer[0]) - 13,
+			"%Y %H:%M:%S %z",
 			ltime
 		);
 
-		APPEND(builder, &timebuffer[0])
+		APPEND(builder, timebuffer)
 		APPEND(builder, "</pubDate>\n")
 	}
 
