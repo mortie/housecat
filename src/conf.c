@@ -12,12 +12,13 @@ static int iskey(char c)
 	return (isalnum(c) || c == '_');
 }
 
-void h_conf_build(void* c, char* key, char* val)
+void h_conf_build(void* c, const char* key, const char* val)
 {
 	h_conf* conf = c;
 	if (h_util_streq(key, "title"))
 	{
-		conf->title = val;
+    conf->title = realloc(conf->title, strlen(val) + 1);
+    strcpy(conf->title, val);
 	}
 	else if (h_util_streq(key, "posts_per_page"))
 	{
@@ -33,9 +34,15 @@ void h_conf_build(void* c, char* key, char* val)
 	else if (h_util_streq(key, "root"))
 	{
 		if (val[0] == '/' && val[1] == '\0')
-			conf->root = "";
+		{
+			conf->root = realloc(conf->root, 1);
+			conf->root[0] = '\0';
+		}
 		else
-			conf->root = val;
+		{
+			conf->root = realloc(conf->root, strlen(val) + 1);
+			strcpy(conf->root, val);
+		}
 	}
 	else if (h_util_streq(key, "rss"))
 	{
@@ -63,12 +70,24 @@ void h_conf_build(void* c, char* key, char* val)
 	else if (h_util_streq(key, "url"))
 	{
 		if (val[0] == '\0')
+		{
+			if (conf->url != NULL)
+				free(conf->url);
 			conf->url = NULL;
-		else {
-			conf->url = val;
+		}
+		else
+		{
 			const size_t urlsize = strlen(val);
-			if (urlsize >= 1 && val[urlsize - 1] == '/') {
-				val[urlsize - 1] = '\0';
+			if (urlsize >= 1 && val[urlsize - 1] == '/')
+			{
+				conf->url = realloc(conf->url, urlsize);
+				memcpy(conf->url, val, urlsize);
+				conf->url[urlsize - 1] = '\0';
+			}
+			else
+			{
+				conf->url = realloc(conf->url, urlsize + 1);
+				strcpy(conf->url, val);
 			}
 		}
 	}
@@ -91,7 +110,10 @@ void h_conf_build(void* c, char* key, char* val)
 		if (val[0] == '\0')
 			conf->webmaster = NULL;
 		else
-			conf->webmaster = val;
+		{
+			conf->webmaster = realloc(conf->webmaster, strlen(val) + 1);
+			strcpy(conf->webmaster, val);
+		}
 	}
 }
 
@@ -135,4 +157,36 @@ h_err* h_conf_parse(char* str, int len, void* data, h_confpair_func pair)
 	}
 
 	return NULL;
+}
+
+h_conf* h_conf_create()
+{
+	h_conf* conf = malloc(sizeof(*conf));
+	if (conf == NULL)
+		return NULL;
+
+	conf->title = NULL;
+	conf->posts_per_page = 5;
+	conf->logo = 0;
+	conf->root = NULL;
+	conf->rss = 0;
+	conf->rss_drafts = 0;
+	conf->url = NULL;
+	conf->rss_level = H_RSS_GLOBAL;
+	conf->use_guid = 1;
+	conf->use_pubdate = 0;
+	conf->webmaster = NULL;
+	return conf;
+}
+
+void h_conf_free(h_conf* conf)
+{
+	if (conf == NULL)
+		return;
+
+	free(conf->title);
+	free(conf->root);
+	free(conf->url);
+	free(conf->webmaster);
+	free(conf);
 }

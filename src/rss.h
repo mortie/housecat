@@ -49,4 +49,9 @@ h_err* h_rss_init_channel(h_section* section, const h_conf* conf, int recurse);
 // The final post's html path is *path
 h_err* h_rss_init_item(h_post* post, const h_conf* conf);
 
+h_rss_post* h_rss_post_create();
+void h_rss_post_free(h_rss_post* rss);
+h_rss_section* h_rss_section_create();
+void h_rss_section_free(h_rss_section* rss);
+
 #endif

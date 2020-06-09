@@ -23,10 +23,9 @@ static char* build_menu_node(
 	for (i = 0; i < root->numsubs; ++i)
 	{
 		h_section* sub = root->subs[i];
-		char* s = h_util_str_join(
-			subs,
-			build_menu_node(sub, current, strs, conf)
-		);
+		char* menu_str = build_menu_node(sub, current, strs, conf);
+		char* s = h_util_str_join(subs, menu_str);
+		free(menu_str);
 		free(subs);
 		subs = s;
 	}
@@ -66,11 +65,10 @@ char* h_build_menu(h_section* root,
 	int i;
 	for (i = 0; i < root->numsubs; ++i)
 	{
-		char* s = h_util_str_join(
-			sections,
-			build_menu_node(root->subs[i], current, strs, conf)
-		);
+		char* menu_str = build_menu_node(root->subs[i], current, strs, conf);
+		char* s = h_util_str_join(sections, menu_str);
 		free(sections);
+		free(menu_str);
 		sections = s;
 	}
 

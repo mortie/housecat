@@ -19,17 +19,19 @@ typedef struct h_err
 	h_err_type type;
 	int errno_err;
 
-	const char* msg;
+	char* msg;
 	int line;
 	char* file;
 } h_err;
 
-h_err* _h_err_create(h_err_type type, const char* msg, int line, char* file);
+h_err* _h_err_create(h_err_type type, const char* msg, int line, const char* file);
 #define h_err_create(type, msg) _h_err_create(type, msg, __LINE__, __FILE__)
 
-h_err* _h_err_from_errno(int err, const char* msg, int line, char* file);
+h_err* _h_err_from_errno(int err, const char* msg, int line, const char* file);
 #define h_err_from_errno(err, msg) _h_err_from_errno(err, msg, __LINE__, __FILE__)
 
-void h_err_print(h_err* err);
+void h_err_print(const h_err* err);
+
+void h_err_free(h_err* err);
 
 #endif

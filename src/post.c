@@ -8,24 +8,27 @@
 #include <string.h>
 #include <ctype.h>
 
-static int startswith(char* str, char* substr) {
+static int startswith(const char* str, const char* substr) {
 	return strncmp(str, substr, strlen(substr)) == 0;
 }
 
-static void put_pair(void* i, char* key, char* val)
+static void put_pair(void* i, const char* key, const char* val)
 {
 	h_rss_post* item = i;
 	if (h_util_streq(key, "author"))
 	{
-		item->author = val;
+		item->author = realloc(item->author, strlen(val) + 1);
+		strcpy(item->author, val);
 	}
 	else if (h_util_streq(key, "description"))
 	{
-		item->description = val;
+		item->description = realloc(item->description, strlen(val) + 1);
+		strcpy(item->description, val);
 	}
 	else if (h_util_streq(key, "date"))
 	{
-		item->date = val;
+		item->date = realloc(item->date, strlen(val) + 1);
+		strcpy(item->date, val);
 	}
 	else if (h_util_streq(key, "category"))
 	{
@@ -37,7 +40,8 @@ static void put_pair(void* i, char* key, char* val)
 		// the + 2 adds another
 
 		item->category = realloc(item->category, (category_length+2)*sizeof(*item->category));
-		item->category[category_length] = val;
+		item->category[category_length] = malloc(strlen(val) + 1); // will alwayy be NULL due to how the LL works, no realloc
+		strcpy(item->category[category_length], val);
 		item->category[category_length + 1] = NULL;
 	}
 }
@@ -62,19 +66,13 @@ enum parsemode
 };
 
 static void metadata_parse(h_post* post, char* data) {
-	post->rss_metadata = calloc(1, sizeof(*post->rss_metadata));
-	post->rss_metadata->category = malloc(sizeof(*post->rss_metadata->category));
-	post->rss_metadata->category[0] = NULL;
-	post->rss_metadata->author = NULL;
-	post->rss_metadata->description = NULL;
-	post->rss_metadata->date = NULL;
-	if (!data)
+	if (data == NULL)
 		return;
 
 	h_conf_parse(data, strlen(data) + 1, post->rss_metadata, put_pair);
 }
 
-static h_err* post_parse(h_post* post, FILE* f, int length, char* path) {
+static h_err* post_parse(h_post* post, FILE* f, int length, const char* path) {
 	//Create string to hold the file
 	// The +3 is for the 3 added NUL bytes at the end
 	// of the rss metadata, title, and html data.
@@ -166,17 +164,43 @@ static h_err* post_parse(h_post* post, FILE* f, int length, char* path) {
 	}
 
 	if (post->title == NULL)
+	{
+		free(fstr);
 		return h_err_create(H_ERR_FORMAT_NOTITLE, path);
+	}
+
+	char* title_new = malloc(strlen(post->title) + 1);
+	if (title_new == NULL)
+	{
+		free(fstr);
+		post->title = NULL;
+		post->html = NULL;
+		return h_err_create(H_ERR_ALLOC, path);
+	}
+	strcpy(title_new, post->title);
+	post->title = title_new;
 
 	metadata_parse(post, rssdata);
 
 	fstr[i - 1] = '\0';
-	post->_fstr = fstr;
+
+	char* html_new = malloc(strlen(post->html) + 1);
+	if (html_new == NULL)
+	{
+		free(fstr);
+		free(post->title);
+		post->title = NULL;
+		return h_err_create(H_ERR_ALLOC, path);
+	}
+	strcpy(html_new, post->html);
+	post->html = html_new;
+
+	free(fstr);
 
 	return NULL;
 }
 
-h_err* h_post_init_from_file(h_post* post, char* path, char* spath, int depth)
+h_err* h_post_init_from_file(h_post* post, const char* path, const char* spath, int depth)
 {
 	post->title = NULL;
 	post->slug = NULL;
@@ -192,6 +216,7 @@ h_err* h_post_init_from_file(h_post* post, char* path, char* spath, int depth)
 	rewind(f);
 
 	h_err* err = post_parse(post, f, length, path);
+	fclose(f);
 	if (err)
 		return err;
 
@@ -227,4 +252,40 @@ h_err* h_post_init_from_file(h_post* post, char* path, char* spath, int depth)
 		post->isdraft = 0;
 
 	return NULL;
+}
+
+h_post* h_post_create()
+{
+	h_post* post = malloc(sizeof(*post));
+	if (post == NULL)
+		return NULL;
+
+	post->title = NULL;
+	post->slug = NULL;
+	post->html = NULL;
+	post->path = NULL;
+	post->rss = NULL;
+
+	post->rss_metadata = h_rss_post_create();
+	if (post->rss_metadata == NULL)
+	{
+		free(post);
+		return NULL;
+	}
+
+	return post;
+}
+
+void h_post_free(h_post* post)
+{
+	if (post == NULL)
+		return;
+
+	free(post->title);
+	free(post->slug);
+	free(post->html);
+	free(post->path);
+	free(post->rss);
+	h_rss_post_free(post->rss_metadata);
+	free(post);
 }

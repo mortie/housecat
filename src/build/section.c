@@ -104,6 +104,7 @@ h_err* h_build_section(
 
 	fputs(res, file);
 
+	free(res);
 	free(menu_str);
 	free(page_str);
 

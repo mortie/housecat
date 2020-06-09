@@ -40,8 +40,6 @@ static h_err* build_post(
 		if (err)
 			return err;
 	}
-	else
-		post->rss = NULL;
 
 	free(dpath);
 

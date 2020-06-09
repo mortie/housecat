@@ -43,6 +43,7 @@ h_err* h_build_post(
 
 	fputs(res, file);
 
+	free(res);
 	free(menu_str);
 	free(post_str);
 

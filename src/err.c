@@ -2,8 +2,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
-static char* str_from_err(h_err* err)
+static char* str_from_err(const h_err* err)
 {
 	switch (err->type)
 	{
@@ -53,7 +54,7 @@ static char* str_from_errno(int err)
 	}
 }
 
-h_err* _h_err_create(h_err_type type, const char* msg, int line, char* file)
+h_err* _h_err_create(h_err_type type, const char* msg, int line, const char* file)
 {
 	h_err* err = malloc(sizeof(h_err));
 	if (err == NULL) {
@@ -63,21 +64,23 @@ h_err* _h_err_create(h_err_type type, const char* msg, int line, char* file)
 
 	err->type = type;
 	err->errno_err = 0;
-	err->msg = msg;
+	err->msg = malloc(strlen(msg) + 1);
+	strcpy(err->msg, msg);
 	err->line = line;
-	err->file = file;
+	err->file = malloc(strlen(file) + 1);
+	strcpy(err->file, file);
 
 	return err;
 }
 
-h_err* _h_err_from_errno(int errno_err, const char* msg, int line, char* file)
+h_err* _h_err_from_errno(int errno_err, const char* msg, int line, const char* file)
 {
 	h_err* err = _h_err_create(H_ERR_ERRNO, msg, line, file);
 	err->errno_err = errno_err;
 	return err;
 }
 
-void h_err_print(h_err* err)
+void h_err_print(const h_err* err)
 {
 	if (!err)
 		return;
@@ -95,4 +98,14 @@ void h_err_print(h_err* err)
 		fprintf(stderr, ": %s\n", err->msg);
 	else
 		fprintf(stderr, "\n");
+}
+
+void h_err_free(h_err *err)
+{
+	if (err == NULL)
+		return;
+
+	free(err->msg);
+	free(err->file);
+	free(err);
 }
