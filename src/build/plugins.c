@@ -11,10 +11,10 @@
 #include <string.h>
 
 static h_err* build_plugin(
-		char* dirpath,
-		char* outdir,
+		const char* dirpath,
+		const char* outdir,
 		h_build_outfiles outfiles,
-		h_conf* conf)
+		const h_conf* conf)
 {
 	char* confjsonpath = h_util_path_join(dirpath, H_FILE_PLUGIN_CONF);
 	if (confjsonpath == NULL)
@@ -23,15 +23,30 @@ static h_err* build_plugin(
 	errno = 0;
 	char* confjson = h_util_file_read(confjsonpath);
 	if (confjson == NULL && errno)
-		return h_err_from_errno(errno, confjsonpath);
+	{
+		h_err* err = h_err_from_errno(errno, confjsonpath);
+		free(confjsonpath);
+		return err;
+	}
+	free(confjsonpath);
 	if (confjson == NULL)
 		return h_err_create(H_ERR_ALLOC, NULL);
-	free(confjsonpath);
 
 	int jsonlen = strlen(confjson);
 	int rootlen = strlen(conf->root);
 	char* jspath = h_util_path_join(dirpath, H_FILE_PLUGIN_JS);
+	if (jspath == NULL)
+	{
+		free(confjson);
+		return h_err_create(H_ERR_ALLOC, NULL);
+	}
 	char* phppath = h_util_path_join(dirpath, H_FILE_PLUGIN_PHP);
+	if (phppath == NULL)
+	{
+		free(confjson);
+		free(jspath);
+		return h_err_create(H_ERR_ALLOC, NULL);
+	}
 
 	//Copy things to script.js
 	if (h_util_file_err(jspath) != ENOENT)
@@ -78,26 +93,45 @@ static h_err* build_plugin(
 	return NULL;
 }
 
-h_err* h_build_plugins(char* rootdir, h_build_outfiles outfiles, h_conf* conf)
+h_err* h_build_plugins(const char* rootdir, h_build_outfiles outfiles, const h_conf* conf)
 {
 	char* pluginsdir = h_util_path_join(rootdir, H_FILE_PLUGINS);
+	if (pluginsdir == NULL)
+		return h_err_create(H_ERR_ALLOC, NULL);
 	char* outpluginsdir = h_util_path_join(
 		rootdir,
 		H_FILE_OUTPUT "/" H_FILE_OUT_META "/" H_FILE_OUT_PHP
 	);
+	if (outpluginsdir == NULL)
+	{
+		free(pluginsdir);
+		return h_err_create(H_ERR_ALLOC, NULL);
+	}
 
 	//Check status of rootdir/plugins, returning if it doesn't exist
 	{
 		int err = h_util_file_err(pluginsdir);
 		if (err == ENOENT)
+		{
+			free(outpluginsdir);
+			free(pluginsdir);
 			return NULL;
+		}
 		if (err && err != EEXIST)
+		{
+			free(outpluginsdir);
+			free(pluginsdir);
 			return h_err_from_errno(err, pluginsdir);
+		}
 	}
 
 	//Create rootdir/public/_/plugins if it doesn't exist
 	if (mkdir(outpluginsdir, 0777) == -1 && errno != EEXIST)
+	{
+		free(outpluginsdir);
+		free(pluginsdir);
 		return h_err_from_errno(errno, outpluginsdir);
+	}
 
 	//Loop through plugins, building them
 	struct dirent** namelist;
@@ -107,20 +141,44 @@ h_err* h_build_plugins(char* rootdir, h_build_outfiles outfiles, h_conf* conf)
 	{
 		struct dirent* ent = namelist[i];
 		if (ent->d_name[0] == '.')
+		{
+			free(ent);
 			continue;
+		}
 
 		char* dirpath = h_util_path_join(pluginsdir, ent->d_name);
+		if (dirpath == NULL)
+		{
+			free(pluginsdir);
+			free(outpluginsdir);
+			return h_err_create(H_ERR_ALLOC, NULL);
+		}
 		char* outdir = h_util_path_join(outpluginsdir, ent->d_name);
+		if (outdir == NULL)
+		{
+			free(dirpath);
+			free(pluginsdir);
+			free(outpluginsdir);
+			return h_err_create(H_ERR_ALLOC, NULL);
+		}
 
 		h_err* err;
 		err = build_plugin(dirpath, outdir, outfiles, conf);
 		if (err)
+		{
+			free(outdir);
+			free(dirpath);
+			free(pluginsdir);
+			free(outpluginsdir);
 			return err;
+		}
 
 		free(dirpath);
 		free(outdir);
 		free(ent);
 	}
+	free(pluginsdir);
+	free(outpluginsdir);
 	free(namelist);
 
 	return NULL;

@@ -41,4 +41,7 @@ h_err* h_section_add_draft(h_section* section, h_post* post);
 //Add a sub section
 h_err* h_section_add_sub(h_section* section, h_section* sub);
 
+h_section* h_section_create();
+void h_section_free(h_section* section);
+
 #endif

@@ -30,36 +30,43 @@ typedef struct strbuf {
 		} \
 	} while(0);
 
-static void build_channel_data(void* r, char* key, char* val)
+static void build_channel_data(void* r, const char* key, const char* val)
 {
 	h_rss_section* rss = r;
 	if (h_util_streq(key, "description"))
 	{
-		rss->description = val;
+		rss->description = realloc(rss->description, strlen(val) + 1);
+		strcpy(rss->description, val);
 	}
 	else if (h_util_streq(key, "title"))
 	{
-		rss->title = val;
+		rss->title = realloc(rss->title, strlen(val) + 1);
+		strcpy(rss->title, val);
 	}
 	else if (h_util_streq(key, "language"))
 	{
-		rss->language = val;
+		rss->language = realloc(rss->language, strlen(val) + 1);
+		strcpy(rss->language, val);
 	}
 	else if (h_util_streq(key, "editor"))
 	{
-		rss->editor = val;
+		rss->editor = realloc(rss->editor, strlen(val) + 1);
+		strcpy(rss->editor, val);
 	}
 	else if (h_util_streq(key, "copyright"))
 	{
-		rss->copyright = val;
+		rss->copyright = realloc(rss->copyright, strlen(val) + 1);
+		strcpy(rss->copyright, val);
 	}
 	else if (h_util_streq(key, "img"))
 	{
-		rss->img = val;
+		rss->img = realloc(rss->img, strlen(val) + 1);
+		strcpy(rss->img, val);
 	}
 	else if (h_util_streq(key, "ttl"))
 	{
-		rss->ttl = val;
+		rss->ttl = realloc(rss->ttl, strlen(val) + 1);
+		strcpy(rss->ttl, val);
 	}
 	else if (h_util_streq(key, "category"))
 	{
@@ -67,7 +74,8 @@ static void build_channel_data(void* r, char* key, char* val)
 		for (category_length = 0; rss->category[category_length] != NULL; ++category_length);
 
 		rss->category = realloc(rss->category, (category_length+2)*sizeof(*rss->category));
-		rss->category[category_length] = val;
+		rss->category[category_length] = malloc(strlen(val) + 1);
+		strcpy(rss->category[category_length], val);
 		rss->category[category_length+1] = NULL;
 	}
 }
@@ -258,6 +266,46 @@ h_err* h_rss_aggregate(h_section* section)
 	return NULL;
 }
 
+void h_rss_arg(h_section* section, h_template_args* args, const h_conf* conf)
+{
+	if (conf->rss)
+	{
+		char* feed = NULL;
+		switch(conf->rss_level)
+		{
+		case H_RSS_SUBSECTION:
+			feed = h_util_path_join(section->path, "feed.rss");
+			h_template_args_append(args, "feed", feed);
+			break;
+		case H_RSS_SECTION:
+			// ; is needed so case statement is satisfied
+			;const size_t path_len = strlen(section->path);
+			size_t first_slash;
+			for (first_slash = 0; first_slash < path_len && section->path[first_slash] != '/'; ++first_slash);
+			if (path_len == 0)
+			{
+				h_template_args_append(args, "feed", "feed.rss");
+			}
+			else if (first_slash == path_len)
+			{
+				feed = h_util_path_join(section->path, "feed.rss");
+				h_template_args_append(args, "feed", feed);
+			}
+			else
+			{
+				section->path[first_slash] = '\0';
+				feed = h_util_path_join(section->path, "feed.rss");
+				section->path[first_slash] = '/';
+				h_template_args_append(args, "feed", feed);
+			}
+			break;
+		default:
+			h_template_args_append(args, "feed", "feed.rss");
+		}
+		free(feed);
+	}
+}
+
 h_err* h_rss_build(h_section* root, const h_conf* conf, const char* path)
 {
 	switch (conf->rss_level)
@@ -273,55 +321,86 @@ h_err* h_rss_build(h_section* root, const h_conf* conf, const char* path)
 
 h_err* h_rss_configure(h_section* section, const h_rss_section* inherit)
 {
-	section->rss_metadata = malloc(sizeof(*section->rss_metadata));
-	section->rss_metadata->title = NULL;
-	section->rss_metadata->description = NULL;
-	section->rss_metadata->language = NULL;
-	section->rss_metadata->editor = NULL;
-	section->rss_metadata->copyright = NULL;
-	section->rss_metadata->img = NULL;
-	section->rss_metadata->ttl = NULL;
-	section->rss_metadata->category = malloc(sizeof(*section->rss_metadata->category));
-	section->rss_metadata->category[0] = NULL;
 	if (inherit != NULL)
 	{
 		if (inherit->title)
-			section->rss_metadata->title = inherit->title;
+		{
+			section->rss_metadata->title = malloc(strlen(inherit->title) + 1);
+			strcpy(section->rss_metadata->title, inherit->title);
+		}
+
 		if (inherit->description)
-			section->rss_metadata->description = inherit->description;
+		{
+			section->rss_metadata->description = malloc(strlen(inherit->description) + 1);
+			strcpy(section->rss_metadata->description, inherit->description);
+		}
+
 		if (inherit->language)
-			section->rss_metadata->language = inherit->language;
+		{
+			section->rss_metadata->language = malloc(strlen(inherit->language) + 1);
+			strcpy(section->rss_metadata->language, inherit->language);
+		}
+
 		if (inherit->editor)
-			section->rss_metadata->editor = inherit->editor;
+		{
+			section->rss_metadata->editor = malloc(strlen(inherit->editor) + 1);
+			strcpy(section->rss_metadata->editor, inherit->editor);
+		}
+
 		if (inherit->copyright)
-			section->rss_metadata->copyright = inherit->copyright;
+		{
+			section->rss_metadata->copyright = malloc(strlen(inherit->copyright) + 1);
+			strcpy(section->rss_metadata->copyright, inherit->copyright);
+		}
+
 		if (inherit->img)
-			section->rss_metadata->img = inherit->img;
+		{
+			section->rss_metadata->img = malloc(strlen(inherit->img) + 1);
+			strcpy(section->rss_metadata->img, inherit->img);
+		}
+
 		if (inherit->ttl)
-			section->rss_metadata->ttl = inherit->ttl;
+		{
+			section->rss_metadata->ttl = malloc(strlen(inherit->ttl) + 1);
+			strcpy(section->rss_metadata->ttl, inherit->ttl);
+		}
+
 		if (inherit->category)
 		{
 			size_t category_length;
 			for (category_length = 0; inherit->category[category_length] != NULL; ++category_length);
+
 			section->rss_metadata->category =
 				realloc(section->rss_metadata->category, sizeof(*section->rss_metadata->category)*(category_length+1));
-			for (size_t i=0; i <= category_length; ++i)
-				section->rss_metadata->category[i] = inherit->category[i];
+
+			for (size_t i=0; i < category_length; ++i)
+			{
+				section->rss_metadata->category[i] = malloc(strlen(inherit->category[i]) + 1);
+				strcpy(section->rss_metadata->category[i], inherit->category[i]);
+			}
+			section->rss_metadata->category[category_length] = NULL;
 		}
 	}
 
 	char* rsspath = h_util_path_join(section->rpath, "rss.conf");
+	if (rsspath == NULL)
+		return h_err_create(H_ERR_ALLOC, NULL);
 	char* rssdata = h_util_file_read(rsspath);
 	free(rsspath);
-	if (!rssdata)
-		return NULL; // rss.conf is optional
+	if (rssdata == NULL)
+		return NULL;
 
 	h_err* err = h_conf_parse(rssdata, strlen(rssdata)+1, (void *)section->rss_metadata, build_channel_data);
+	free(rssdata);
 	if (err)
 		return err;
 
 	for (int i=0; i < section->numsubs; ++i)
-		h_rss_configure(section->subs[i], section->rss_metadata);
+	{
+		err = h_rss_configure(section->subs[i], section->rss_metadata);
+		if (err)
+			return err;
+	}
 
 	return NULL;
 }
@@ -604,4 +683,80 @@ h_err* h_rss_init_item(h_post* post, const h_conf* conf)
 	APPEND(builder, "\t</item>\n")
   post->rss = builder.str;
 	return NULL;
+}
+
+h_rss_post* h_rss_post_create()
+{
+	h_rss_post* rss = malloc(sizeof(*rss));
+	if (rss == NULL)
+		return NULL;
+
+	rss->author = NULL;
+	rss->description = NULL;
+	rss->date = NULL;
+	rss->category = malloc(sizeof(*rss->category));
+	if (rss->category == NULL)
+	{
+		free(rss);
+		return NULL;
+	}
+
+	rss->category[0] = NULL;
+	return rss;
+}
+
+void h_rss_post_free(h_rss_post* rss)
+{
+	if (rss == NULL)
+		return;
+
+	free(rss->author);
+	free(rss->description);
+	free(rss->date);
+	for (size_t i=0; rss->category[i] != NULL; ++i)
+		free(rss->category[i]);
+	free(rss->category);
+	free(rss);
+}
+
+h_rss_section* h_rss_section_create()
+{
+	h_rss_section* rss = malloc(sizeof(*rss));
+	if (rss == NULL)
+		return NULL;
+
+	rss->title = NULL;
+	rss->description = NULL;
+	rss->language = NULL;
+	rss->editor = NULL;
+	rss->copyright = NULL;
+	rss->img = NULL;
+	rss->ttl = NULL;
+	rss->category = malloc(sizeof(*rss->category));
+	if (rss->category == NULL)
+	{
+		free(rss);
+		return NULL;
+	}
+
+	rss->category[0] = NULL;
+	return rss;
+}
+
+void h_rss_section_free(h_rss_section* rss)
+{
+	if (rss == NULL)
+		return;
+
+	free(rss->title);
+	free(rss->description);
+	free(rss->language);
+	free(rss->editor);
+	free(rss->copyright);
+	free(rss->img);
+	free(rss->ttl);
+	for (size_t i=0; rss->category[i]  != NULL; ++i)
+		free(rss->category[i]);
+	free(rss->category);
+	free(rss);
 }

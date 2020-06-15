@@ -9,7 +9,7 @@
 #include <dirent.h>
 #include <string.h>
 
-h_err* h_build_imgs(char* rootdir)
+h_err* h_build_imgs(const char* rootdir)
 {
 	char* imgsdir = h_util_path_join(rootdir, H_FILE_IMGS);
 	char* outimgsdir = h_util_path_join(
@@ -39,6 +39,8 @@ h_err* h_build_imgs(char* rootdir)
 		return h_err_from_errno(errno, outimgsdir);
 
 	h_util_cp_dir(imgsdir, outimgsdir);
+	free(imgsdir);
+	free(outimgsdir);
 
 	return NULL;
 }

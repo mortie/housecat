@@ -1,10 +1,11 @@
 #ifndef H_RSS_H
 #define H_RSS_H
 
+#include "conf.h"
 #include "err.h"
 #include "post.h"
 #include "section.h"
-#include "conf.h"
+#include "template.h"
 
 typedef struct h_rss_section
 {
@@ -30,6 +31,9 @@ typedef struct h_rss_post
 // into the section's rss string
 h_err* h_rss_aggregate(h_section* section);
 
+// Build the arg template {{feed}}
+void h_rss_arg(h_section* section, h_template_args* args, const h_conf* conf);
+
 // Build the actual rss feeds based on the configuration
 h_err* h_rss_build(h_section* root, const h_conf* conf, const char* path);
 
@@ -44,5 +48,10 @@ h_err* h_rss_init_channel(h_section* section, const h_conf* conf, int recurse);
 // Fill a post with an rss <item>
 // The final post's html path is *path
 h_err* h_rss_init_item(h_post* post, const h_conf* conf);
+
+h_rss_post* h_rss_post_create();
+void h_rss_post_free(h_rss_post* rss);
+h_rss_section* h_rss_section_create();
+void h_rss_section_free(h_rss_section* rss);
 
 #endif

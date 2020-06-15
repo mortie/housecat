@@ -50,7 +50,7 @@ char* h_util_path_join(const char* p1, const char* p2)
 	}
 }
 
-char* h_util_str_join(char* s1, char* s2)
+char* h_util_str_join(const char* s1, const char* s2)
 {
 	int len1, len2;
 	if (s1 == NULL) len1 = 0;
@@ -92,7 +92,7 @@ char* h_util_file_read(const char* path)
 	return str;
 }
 
-int h_util_file_err(char* path)
+int h_util_file_err(const char* path)
 {
 	FILE* f = fopen(path, "r");
 
@@ -116,12 +116,12 @@ void h_util_file_copy(FILE* f1, FILE* f2)
 	free(str);
 }
 
-void h_util_cp_dir_to_file(char* dirpath, FILE* file)
+void h_util_cp_dir_to_file(const char* dirpath, FILE* file)
 {
 	h_util_cp_dir_to_file_se(dirpath, file, "", "");
 }
 
-void h_util_cp_dir_to_file_se(char* dirpath, FILE* file, char* start, char* end)
+void h_util_cp_dir_to_file_se(const char* dirpath, FILE* file, const char* start, const char* end)
 {
 	struct dirent** namelist;
 	int n = scandir(dirpath, &namelist, NULL, alphasort);
@@ -133,7 +133,10 @@ void h_util_cp_dir_to_file_se(char* dirpath, FILE* file, char* start, char* end)
 	{
 		struct dirent* ent = namelist[i];
 		if (ent->d_name[0] == '.')
+		{
+			free(ent);
 			continue;
+		}
 
 		char* path = h_util_path_join(dirpath, ent->d_name);
 		FILE* f = fopen(path, "r");
@@ -149,12 +152,12 @@ void h_util_cp_dir_to_file_se(char* dirpath, FILE* file, char* start, char* end)
 	free(namelist);
 }
 
-void h_util_cp_dir(char* dir1, char* dir2)
+void h_util_cp_dir(const char* dir1, const char* dir2)
 {
 	h_util_cp_dir_se(dir1, dir2, "", "");
 }
 
-void h_util_cp_dir_se(char* dir1, char* dir2, char* start, char* end)
+void h_util_cp_dir_se(const char* dir1, const char* dir2, const char* start, const char* end)
 {
 	DIR* d1 = opendir(dir1);
 

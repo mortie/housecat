@@ -1,12 +1,9 @@
 ### RSS ###
-- Build feeds for global, section, and subsection mode
 - Let RSS data be in any comment
 
 ### General ###
-- Actually free data structures
-- Change to individually malloc'ing components instead of editing strings
 - Read files into memory before parsing
 - More robust parsing mechanism for posts
 - Remove HTML comments from titles
-- Fix memory leaks
 - Unify coding style some more
+- Make error checking more consistent
