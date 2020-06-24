@@ -17,8 +17,8 @@ void h_conf_build(void* c, const char* key, const char* val)
 	h_conf* conf = c;
 	if (h_util_streq(key, "title"))
 	{
-    conf->title = realloc(conf->title, strlen(val) + 1);
-    strcpy(conf->title, val);
+		conf->title = realloc(conf->title, strlen(val) + 1);
+		strcpy(conf->title, val);
 	}
 	else if (h_util_streq(key, "posts_per_page"))
 	{
