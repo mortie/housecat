@@ -21,6 +21,7 @@ typedef struct h_conf
 
 	int rss;
 	int rss_drafts;
+	int rss_fullcontent;
 	char* url;
 	enum h_rsslevel rss_level;
 	int use_guid;
