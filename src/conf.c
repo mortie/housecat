@@ -17,8 +17,8 @@ void h_conf_build(void* c, const char* key, const char* val)
 	h_conf* conf = c;
 	if (h_util_streq(key, "title"))
 	{
-    conf->title = realloc(conf->title, strlen(val) + 1);
-    strcpy(conf->title, val);
+		conf->title = realloc(conf->title, strlen(val) + 1);
+		strcpy(conf->title, val);
 	}
 	else if (h_util_streq(key, "posts_per_page"))
 	{
@@ -57,6 +57,13 @@ void h_conf_build(void* c, const char* key, const char* val)
 			conf->rss_drafts = 1;
 		else
 			conf->rss_drafts = 0;
+	}
+	else if (h_util_streq(key, "rss_fullcontent"))
+	{
+		if (h_util_streq(val, "true"))
+			conf->rss_fullcontent = 1;
+		else
+			conf->rss_fullcontent = 0;
 	}
 	else if (h_util_streq(key, "rss_level"))
 	{
@@ -171,6 +178,7 @@ h_conf* h_conf_create()
 	conf->root = NULL;
 	conf->rss = 0;
 	conf->rss_drafts = 0;
+	conf->rss_fullcontent = 1;
 	conf->url = NULL;
 	conf->rss_level = H_RSS_GLOBAL;
 	conf->use_guid = 1;

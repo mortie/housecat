@@ -97,7 +97,7 @@ h_err* h_build_section(
 	h_template_args_append(args, "menu", menu_str);
 	h_template_args_append(args, "page", page_str);
 	h_template_args_append(args, "s_root", conf->root);
-  h_rss_arg(section, args, conf);
+	h_rss_arg(section, args, conf);
 
 	char* res = h_templateify(strs.index, args);
 	h_template_args_free(args);

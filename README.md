@@ -94,6 +94,11 @@ The optional options in `conf` are:
 * `rss_drafts` A boolean (`true` or `false`), defaults to `false`.
 	If this option is true, posts that are drafts (posts whose titles
 	start with `DRAFT:`) will be included in the rss feed.
+* `rss_fullcontent` A boolean (`true` or `false`), defaults to `true`.
+	If this option is true, the RSS `<item>` tags will use the full
+	content of a post in their `<description>`, otherwise the RSS `<item>` tags
+	will use the short descrption found in the RSS configuration section
+	of the post input file.
 * `url` A string, defaults to an empty string. Use this option
 	to specify the site url, including the schema (e.g. `https://`)
 	so the rss feed can contain real links to the content. Without

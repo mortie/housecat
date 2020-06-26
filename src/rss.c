@@ -636,7 +636,14 @@ h_err* h_rss_init_item(h_post* post, const h_conf* conf)
 	}
 	APPEND(builder, "</link>\n\t\t<description>")
 
-	if (post->rss_metadata->description)
+	// decide whether or not to use full content
+	if (conf->rss_fullcontent)
+	{
+		APPEND(builder, "<![CDATA[\n")
+		APPEND(builder, post->html)
+		APPEND(builder, "\n]]>")
+	}
+	else if (post->rss_metadata->description)
 	{
 		APPEND(builder, post->rss_metadata->description);
 	}
@@ -681,7 +688,7 @@ h_err* h_rss_init_item(h_post* post, const h_conf* conf)
 	}
 
 	APPEND(builder, "\t</item>\n")
-  post->rss = builder.str;
+	post->rss = builder.str;
 	return NULL;
 }
 

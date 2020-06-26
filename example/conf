@@ -5,6 +5,7 @@ root: /
 rss: true
 rss_level: subsection
 rss_drafts: true
+rss_fullcontent: true
 url: http://www.example.com
 use_guid: true
 use_pubdate: true
