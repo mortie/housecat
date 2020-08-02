@@ -80,15 +80,19 @@ char* h_util_file_read(const char* path)
 	fseek(f, 0L, SEEK_SET);
 
 	char* str = malloc(len);
-	if (str == NULL)
+	if (str == NULL) {
+		fclose(f);
 		return NULL;
+	}
 
-	fread(str, sizeof(char), len - 1, f);
+	if (fread(str, sizeof(char), len - 1, f) < (size_t)len - 1) {
+		free(str);
+		fclose(f);
+		return NULL;
+	}
 
 	fclose(f);
-
 	str[len - 1] = '\0';
-
 	return str;
 }
 
@@ -110,7 +114,11 @@ void h_util_file_copy(FILE* f1, FILE* f2)
 	fseek(f1, 0L, SEEK_SET);
 
 	char* str = malloc(len);
-	fread(str, sizeof(char), len, f1);
+	if (fread(str, sizeof(char), len, f1) < (size_t)len) {
+		perror("read");
+		free(str);
+		return;
+	}
 
 	fwrite(str, sizeof(char), len, f2);
 	free(str);

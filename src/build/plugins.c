@@ -12,7 +12,8 @@
 
 static h_err* build_plugin(
 		const char* dirpath,
-		const char* outdir,
+		const char* outdirphp,
+		const char* outdirmisc,
 		h_build_outfiles outfiles,
 		const h_conf* conf)
 {
@@ -47,6 +48,14 @@ static h_err* build_plugin(
 		free(jspath);
 		return h_err_create(H_ERR_ALLOC, NULL);
 	}
+	char* miscpath = h_util_path_join(dirpath, H_FILE_PLUGIN_MISC);
+	if (miscpath == NULL)
+	{
+		free(confjson);
+		free(jspath);
+		free(phppath);
+		return h_err_create(H_ERR_ALLOC, NULL);
+	}
 
 	//Copy things to script.js
 	if (h_util_file_err(jspath) != ENOENT)
@@ -78,17 +87,32 @@ static h_err* build_plugin(
 		if (d1 == NULL)
 			return h_err_from_errno(errno, phppath);
 		closedir(d1);
-		if (mkdir(outdir, 0777) == -1 && errno != EEXIST)
-			return h_err_from_errno(errno, outdir);
+		if (mkdir(outdirphp, 0777) == -1 && errno != EEXIST)
+			return h_err_from_errno(errno, outdirphp);
 
-		h_util_cp_dir_se(phppath, outdir, start, "");
+		h_util_cp_dir_se(phppath, outdirphp, start, "");
 
 		free(start);
+	}
+
+	//Copy misc files
+	if (h_util_file_err(miscpath) != ENOENT)
+	{
+		//Make sure dirs are okay
+		DIR* d1 = opendir(miscpath);
+		if (d1 == NULL)
+			return h_err_from_errno(errno, miscpath);
+		closedir(d1);
+		if (mkdir(outdirmisc, 0777) == -1 && errno != EEXIST)
+			return h_err_from_errno(errno, outdirmisc);
+
+		h_util_cp_dir(miscpath, outdirmisc);
 	}
 
 	free(confjson);
 	free(phppath);
 	free(jspath);
+	free(miscpath);
 
 	return NULL;
 }
@@ -98,13 +122,23 @@ h_err* h_build_plugins(const char* rootdir, h_build_outfiles outfiles, const h_c
 	char* pluginsdir = h_util_path_join(rootdir, H_FILE_PLUGINS);
 	if (pluginsdir == NULL)
 		return h_err_create(H_ERR_ALLOC, NULL);
-	char* outpluginsdir = h_util_path_join(
+	char* outpluginsdirphp = h_util_path_join(
 		rootdir,
 		H_FILE_OUTPUT "/" H_FILE_OUT_META "/" H_FILE_OUT_PHP
 	);
-	if (outpluginsdir == NULL)
+	if (outpluginsdirphp == NULL)
 	{
 		free(pluginsdir);
+		return h_err_create(H_ERR_ALLOC, NULL);
+	}
+	char* outpluginsdirmisc = h_util_path_join(
+		rootdir,
+		H_FILE_OUTPUT "/" H_FILE_OUT_META "/" H_FILE_OUT_MISC
+	);
+	if (outpluginsdirmisc == NULL)
+	{
+		free(pluginsdir);
+		free(outpluginsdirphp);
 		return h_err_create(H_ERR_ALLOC, NULL);
 	}
 
@@ -113,24 +147,32 @@ h_err* h_build_plugins(const char* rootdir, h_build_outfiles outfiles, const h_c
 		int err = h_util_file_err(pluginsdir);
 		if (err == ENOENT)
 		{
-			free(outpluginsdir);
+			free(outpluginsdirphp);
+			free(outpluginsdirmisc);
 			free(pluginsdir);
 			return NULL;
 		}
 		if (err && err != EEXIST)
 		{
-			free(outpluginsdir);
+			free(outpluginsdirphp);
+			free(outpluginsdirmisc);
 			free(pluginsdir);
 			return h_err_from_errno(err, pluginsdir);
 		}
 	}
 
-	//Create rootdir/public/_/plugins if it doesn't exist
-	if (mkdir(outpluginsdir, 0777) == -1 && errno != EEXIST)
-	{
-		free(outpluginsdir);
+	//Create dirs if they don't exist
+	if (mkdir(outpluginsdirphp, 0777) == -1 && errno != EEXIST) {
+		free(outpluginsdirphp);
+		free(outpluginsdirmisc);
 		free(pluginsdir);
-		return h_err_from_errno(errno, outpluginsdir);
+		return h_err_from_errno(errno, outpluginsdirphp);
+	}
+	if (mkdir(outpluginsdirmisc, 0777) == -1 && errno != EEXIST) {
+		free(outpluginsdirphp);
+		free(outpluginsdirmisc);
+		free(pluginsdir);
+		return h_err_from_errno(errno, outpluginsdirmisc);
 	}
 
 	//Loop through plugins, building them
@@ -149,36 +191,53 @@ h_err* h_build_plugins(const char* rootdir, h_build_outfiles outfiles, const h_c
 		char* dirpath = h_util_path_join(pluginsdir, ent->d_name);
 		if (dirpath == NULL)
 		{
+			free(outpluginsdirphp);
+			free(outpluginsdirmisc);
 			free(pluginsdir);
-			free(outpluginsdir);
 			return h_err_create(H_ERR_ALLOC, NULL);
 		}
-		char* outdir = h_util_path_join(outpluginsdir, ent->d_name);
-		if (outdir == NULL)
+		char* outdirphp = h_util_path_join(outpluginsdirphp, ent->d_name);
+		if (outdirphp == NULL)
 		{
 			free(dirpath);
+			free(outpluginsdirphp);
+			free(outpluginsdirmisc);
 			free(pluginsdir);
-			free(outpluginsdir);
+			return h_err_create(H_ERR_ALLOC, NULL);
+		}
+		char* outdirmisc = h_util_path_join(outpluginsdirmisc, ent->d_name);
+		if (outdirmisc == NULL)
+		{
+			free(dirpath);
+			free(outdirphp);
+			free(outpluginsdirphp);
+			free(outpluginsdirmisc);
+			free(pluginsdir);
 			return h_err_create(H_ERR_ALLOC, NULL);
 		}
 
 		h_err* err;
-		err = build_plugin(dirpath, outdir, outfiles, conf);
+		err = build_plugin(dirpath, outdirphp, outdirmisc, outfiles, conf);
 		if (err)
 		{
-			free(outdir);
 			free(dirpath);
+			free(outdirphp);
+			free(outdirmisc);
+			free(outpluginsdirphp);
+			free(outpluginsdirmisc);
 			free(pluginsdir);
-			free(outpluginsdir);
 			return err;
 		}
 
 		free(dirpath);
-		free(outdir);
+		free(outdirphp);
+		free(outdirmisc);
 		free(ent);
 	}
+
 	free(pluginsdir);
-	free(outpluginsdir);
+	free(outpluginsdirphp);
+	free(outpluginsdirmisc);
 	free(namelist);
 
 	return NULL;
