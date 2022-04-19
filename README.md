@@ -6,7 +6,7 @@ Housecat is a command-line static site generator, written in C. It should suppor
 
 Installing Housecat is simple. A make && sudo make install should do the trick.
 
-	git clone http://git.mort.coffee/mort/housecat.git
+	git clone https://github.com/mortie/housecat
 	cd housecat
 	make && sudo make install
 
