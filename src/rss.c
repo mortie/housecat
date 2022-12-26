@@ -12,23 +12,56 @@ typedef struct strbuf {
 	size_t len;
 } strbuf;
 
-#define APPEND(x, y) \
-	do \
-	{ \
-		const size_t tmp = strlen(y); \
-		if (x.str) \
-		{ \
-			x.str = realloc(x.str, x.len + tmp + 1); \
-			strcat(x.str, y); \
-			x.len += tmp; \
-		} \
-		else \
-		{ \
-			x.str = malloc(tmp + 1); \
-			strcpy(x.str, y); \
-			x.len = tmp; \
-		} \
-	} while(0);
+static void append_span(strbuf *buf, const char *str, size_t len)
+{
+	if (buf->str)
+	{
+		buf->str = realloc(buf->str, buf->len + len + 1);
+		strncat(buf->str, str, len);
+		buf->len += len;
+		buf->str[buf->len] = '\0';
+	}
+	else
+	{
+		buf->str = malloc(len + 1);
+		strncpy(buf->str, str, len);
+		buf->len = len;
+		buf->str[buf->len] = '\0';
+	}
+}
+
+static void append(strbuf *buf, const char *str)
+{
+	append_span(buf, str, strlen(str));
+}
+
+static void append_truncated_html(strbuf *buf, const char *html)
+{
+	const char *magic = "<!--RSS_END-->";
+	size_t magic_length = strlen(magic);
+
+	size_t line_start = 0;
+	char ch;
+	for (size_t i = 0; (ch = html[i]); ++i)
+	{
+		if (ch == '\r' || ch == '\n')
+		{
+			const char *line = &html[line_start];
+			size_t line_length = i - line_start;
+
+			if (magic_length == line_length && strncmp(magic, line, line_length) == 0)
+			{
+				append_span(buf, html, line_start - 1);
+				return;
+			}
+
+			if (ch == '\n')
+				line_start = i + 1;
+		}
+	}
+
+	append(buf, html);
+}
 
 static void build_channel_data(void* r, const char* key, const char* val)
 {
@@ -246,20 +279,20 @@ h_err* h_rss_aggregate(h_section* section)
 			return err;
 		}
 		if (section->subs[i]->rss)
-			APPEND(builder, section->subs[i]->rss);
+			append(&builder, section->subs[i]->rss);
 	}
 
 	for (int i=0; i < section->numposts; ++i)
 	{
 		if (section->posts[i]->rss)
-			APPEND(builder, section->posts[i]->rss)
+			append(&builder, section->posts[i]->rss);
 	}
 
 	// rss will be NULL if rss_drafts is false
 	for (int i=0; i < section->numdrafts; ++i)
 	{
 		if (section->drafts[i]->rss)
-			APPEND(builder, section->drafts[i]->rss)
+			append(&builder, section->drafts[i]->rss);
 	}
 
 	section->rss = builder.str;
@@ -410,83 +443,83 @@ h_err* h_rss_init_channel(h_section* section, const h_conf* conf, int recurse)
 	strbuf builder = {NULL, 0};
 
 	// Required tags
-	APPEND(builder, "<channel>\n\t<title>")
+	append(&builder, "<channel>\n\t<title>");
 	if (section->rss_metadata->title != NULL)
-		APPEND(builder, section->rss_metadata->title)
-	APPEND(builder, "</title>\n\t<link>")
+		append(&builder, section->rss_metadata->title);
+	append(&builder, "</title>\n\t<link>");
 	if (conf->url != NULL)
 	{
 		char* urlpath = h_util_path_join(conf->url, section->path);
-		APPEND(builder, urlpath)
+		append(&builder, urlpath);
 		free(urlpath);
 	}
 	else
-		APPEND(builder, section->path)
-	APPEND(builder, "</link>\n\t<description>")
+		append(&builder, section->path);
+	append(&builder, "</link>\n\t<description>");
 	if (section->rss_metadata->description != NULL)
-		APPEND(builder, section->rss_metadata->description)
+		append(&builder, section->rss_metadata->description);
 
-	APPEND(builder, "</description>\n\t<atom:link href=\"")
+	append(&builder, "</description>\n\t<atom:link href=\"");
 
 	if (conf->url != NULL)
 	{
 		char* urlpath = h_util_path_join(conf->url, section->path);
 		char* rsspath = h_util_path_join(urlpath, "feed.rss");
-		APPEND(builder, rsspath)
+		append(&builder, rsspath);
 		free(urlpath);
 		free(rsspath);
 	}
 	else
-		APPEND(builder, section->path)
-	APPEND(builder, "\" rel=\"self\" type=\"application/rss+xml\" />\n")
+		append(&builder, section->path);
+	append(&builder, "\" rel=\"self\" type=\"application/rss+xml\" />\n");
 
 	// optional tags
 	if (section->rss_metadata->language != NULL)
 	{
-		APPEND(builder, "\t<language>")
-		APPEND(builder, section->rss_metadata->language)
-		APPEND(builder, "</language>\n")
+		append(&builder, "\t<language>");
+		append(&builder, section->rss_metadata->language);
+		append(&builder, "</language>\n");
 	}
 
 	if (section->rss_metadata->editor != NULL)
 	{
-		APPEND(builder, "\t<managingEditor>")
-		APPEND(builder, section->rss_metadata->editor)
-		APPEND(builder, "</managingEditor>\n")
+		append(&builder, "\t<managingEditor>");
+		append(&builder, section->rss_metadata->editor);
+		append(&builder, "</managingEditor>\n");
 	}
 
 	if (section->rss_metadata->copyright != NULL)
 	{
-		APPEND(builder, "\t<copyright>")
-		APPEND(builder, section->rss_metadata->copyright)
-		APPEND(builder, "</copyright>\n")
+		append(&builder, "\t<copyright>");
+		append(&builder, section->rss_metadata->copyright);
+		append(&builder, "</copyright>\n");
 	}
 
 	if (section->rss_metadata->ttl != NULL)
 	{
-		APPEND(builder, "\t<ttl>")
-		APPEND(builder, section->rss_metadata->ttl)
-		APPEND(builder, "</ttl>\n")
+		append(&builder, "\t<ttl>");
+		append(&builder, section->rss_metadata->ttl);
+		append(&builder, "</ttl>\n");
 	}
 
 	if (section->rss_metadata->img != NULL)
 	{
-		APPEND(builder, "\t<image>")
-		APPEND(builder, section->rss_metadata->img)
-		APPEND(builder, "</image>\n")
+		append(&builder, "\t<image>");
+		append(&builder, section->rss_metadata->img);
+		append(&builder, "</image>\n");
 	}
 
 	for (int i=0; section->rss_metadata->category[i] != NULL; ++i)
 	{
-		APPEND(builder, "\t<category>")
-		APPEND(builder, section->rss_metadata->category[i])
-		APPEND(builder, "</category>\n")
+		append(&builder, "\t<category>");
+		append(&builder, section->rss_metadata->category[i]);
+		append(&builder, "</category>\n");
 	}
 
 	struct timespec ts;
 	if (conf->use_pubdate && (clock_gettime(CLOCK_REALTIME, &ts) == 0))
 	{
-		APPEND(builder, "\t<pubDate>")
+		append(&builder, "\t<pubDate>");
 		// Conforming to https://www.ietf.org/rfc/rfc822.txt , section 5
 		// Not using strftime for most things since it depends on locale, which
 		// may not be compliant with weekday/month
@@ -573,18 +606,18 @@ h_err* h_rss_init_channel(h_section* section, const h_conf* conf, int recurse)
 			ltime
 		);
 
-		APPEND(builder, timebuffer)
-		APPEND(builder, "</pubDate>\n")
+		append(&builder, timebuffer);
+		append(&builder, "</pubDate>\n");
 	}
 
 	if (conf->webmaster != NULL)
 	{
-		APPEND(builder, "\t<webMaster>")
-		APPEND(builder, conf->webmaster)
-		APPEND(builder, "</webMaster>\n")
+		append(&builder, "\t<webMaster>");
+		append(&builder, conf->webmaster);
+		append(&builder, "</webMaster>\n");
 	}
 
-	APPEND(builder, "\t<generator>housecat</generator>\n\t<docs>https://cyber.harvard.edu/rss/rss.html</docs>\n")
+	append(&builder, "\t<generator>housecat</generator>\n\t<docs>https://cyber.harvard.edu/rss/rss.html</docs>\n");
 
 	// Now that the channel settings are set up, generate the actual items
 	if (recurse)
@@ -597,22 +630,22 @@ h_err* h_rss_init_channel(h_section* section, const h_conf* conf, int recurse)
 				return err;
 			}
 			if (section->subs[i]->rss != NULL)
-				APPEND(builder, section->subs[i]->rss)
+				append(&builder, section->subs[i]->rss);
 		}
 
 	for (int i=0; i < section->numposts; ++i)
 	{
 		if (section->posts[i]->rss != NULL)
-			APPEND(builder, section->posts[i]->rss)
+			append(&builder, section->posts[i]->rss);
 	}
 
 	for (int i=0; i < section->numdrafts; ++i)
 	{
 		if (section->drafts[i]->rss != NULL)
-			APPEND(builder, section->drafts[i]->rss)
+			append(&builder, section->drafts[i]->rss);
 	}
 
-	APPEND(builder, "</channel>\n")
+	append(&builder, "</channel>\n");
 	section->rss = builder.str;
 	return NULL;
 }
@@ -621,39 +654,39 @@ h_err* h_rss_init_item(h_post* post, const h_conf* conf)
 {
 	strbuf builder = {NULL, 0};
 
-	APPEND(builder, "\t<item>\n\t\t<title>")
-	APPEND(builder, post->title)
-	APPEND(builder, "</title>\n\t\t<link>")
+	append(&builder, "\t<item>\n\t\t<title>");
+	append(&builder, post->title);
+	append(&builder, "</title>\n\t\t<link>");
 	if (conf->url != NULL)
 	{
 		char* urlpath = h_util_path_join(conf->url, post->path);
-		APPEND(builder, urlpath);
+		append(&builder, urlpath);
 		free(urlpath);
 	}
 	else
 	{
-		APPEND(builder, post->path);
+		append(&builder, post->path);
 	}
-	APPEND(builder, "</link>\n\t\t<description>")
+	append(&builder, "</link>\n\t\t<description>");
 
 	// decide whether or not to use full content
 	if (conf->rss_fullcontent)
 	{
-		APPEND(builder, "<![CDATA[\n")
-		APPEND(builder, post->html)
-		APPEND(builder, "\n]]>")
+		append(&builder, "<![CDATA[\n");
+		append_truncated_html(&builder, post->html);
+		append(&builder, "\n]]>");
 	}
 	else if (post->rss_metadata->description)
 	{
-		APPEND(builder, post->rss_metadata->description);
+		append(&builder, post->rss_metadata->description);
 	}
-	APPEND(builder, "</description>\n")
+	append(&builder, "</description>\n");
 
 	if (post->rss_metadata->author)
 	{
-		APPEND(builder, "\t\t<author>")
-		APPEND(builder, post->rss_metadata->author)
-		APPEND(builder, "</author>\n")
+		append(&builder, "\t\t<author>");
+		append(&builder, post->rss_metadata->author);
+		append(&builder, "</author>\n");
 	}
 
 	if (conf->use_guid)
@@ -661,33 +694,33 @@ h_err* h_rss_init_item(h_post* post, const h_conf* conf)
 		if (conf->url != NULL)
 		{
 			char* urlpath = h_util_path_join(conf->url, post->path);
-			APPEND(builder, "\t\t<guid isPermaLink=\"true\">")
-			APPEND(builder, urlpath)
+			append(&builder, "\t\t<guid isPermaLink=\"true\">");
+			append(&builder, urlpath);
 			free(urlpath);
 		}
 		else
 		{
-			APPEND(builder, "\t\t<guid isPermaLink=\"false\">")
-			APPEND(builder, post->path)
+			append(&builder, "\t\t<guid isPermaLink=\"false\">");
+			append(&builder, post->path);
 		}
-		APPEND(builder, "</guid>\n")
+		append(&builder, "</guid>\n");
 	}
 
 	if (post->rss_metadata->date)
 	{
-		APPEND(builder, "\t\t<pubDate>")
-		APPEND(builder, post->rss_metadata->date)
-		APPEND(builder, "</pubDate>\n")
+		append(&builder, "\t\t<pubDate>");
+		append(&builder, post->rss_metadata->date);
+		append(&builder, "</pubDate>\n");
 	}
 
 	for (size_t i = 0; post->rss_metadata->category[i] != NULL; ++i)
 	{
-		APPEND(builder, "\t\t<category>")
-		APPEND(builder, post->rss_metadata->category[i])
-		APPEND(builder, "</category>\n")
+		append(&builder, "\t\t<category>");
+		append(&builder, post->rss_metadata->category[i]);
+		append(&builder, "</category>\n");
 	}
 
-	APPEND(builder, "\t</item>\n")
+	append(&builder, "\t</item>\n");
 	post->rss = builder.str;
 	return NULL;
 }
